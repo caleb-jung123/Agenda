@@ -33,6 +33,9 @@ class Task(models.Model):
     completed = models.BooleanField(default=False)
     author = models.ForeignKey(User, on_delete=models.CASCADE, related_name="tasks")
     tags = models.ManyToManyField(Tag, blank=True, related_name="tasks")
+    pomodoro_start = models.DateTimeField(null=True, blank=True)
+    last_pomodoro_duration = models.DateTimeField(null=True, blank=True)
+    total_pomodoro_time = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

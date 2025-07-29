@@ -6,6 +6,7 @@ from rest_framework.views import APIView
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from djanto.utils import timezone
 
 # Create your views here.
 
@@ -36,6 +37,27 @@ class TaskViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         return Task.objects.filter(author=self.request.user).order_by("due_date")
+    
+    def start(self, request):
+        task = self.get_object()
+        task.pomodoro_start = timezone.now()
+        task.save(update_fields=["pomodoro_start"])
+        return Response({"status: started", "pomodoro_start", task.pomodoro_start})
+    
+    def end(self, request):
+        task = self.get_object()
+        if not task.pomodoro_start:
+            return Response({"detail": "There is no pomodoro timer active."}, status=status.HTTP_400_BAD_REQUEST)
+
+        now = timezone.now()
+        duration = now - task.pomodoro_start
+
+        task.last_pomodoro_duration = duration
+        task.total_pomodoro_time += duration
+        task.pomodoro_start = None
+        task.save(update_fields=["last_pomodoro_duration", "total_pomodoro_time", "pomodoro_start"])
+
+        return Response({"status": "ended", "last_pomodoro_duration": duration, "total_pomodoro_time": task.total_pomodoro_time})
     
 class CalendarView(APIView):
     permission_classes = [IsAuthenticated]
