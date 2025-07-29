@@ -20,7 +20,8 @@ class Note(models.Model):
     tags = models.ManyToManyField(Tag)
     notes = models.TextField()
     author = models.ForeignKey(User, on_delete=models.CASCADE, related_name="note")
-    last_updated = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
     
     def __str__(self):
         return self.name
