@@ -6,13 +6,51 @@ from rest_framework.views import APIView
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from djanto.utils import timezone
+from rest_framework import status
+from rest_framework.decorators import action
+from rest_framework import filters
+from django_filters.rest_framework import DjangoFilterBackend
+from django_filters import rest_framework as django_filters
+from django.utils import timezone
+from django.db.models import Q, Count
 
 # Create your views here.
+
+class TaskFilter(django_filters.FilterSet):
+    tags = django_filters.ModelMultipleChoiceFilter(
+        queryset=Tag.objects.all(),
+        field_name='tags',
+        to_field_name='id'
+    )
+    completed = django_filters.BooleanFilter()
+    has_due_date = django_filters.BooleanFilter(method='filter_has_due_date')
+    overdue = django_filters.BooleanFilter(method='filter_overdue')
+    search = django_filters.CharFilter(method='filter_search')
+    
+    class Meta:
+        model = Task
+        fields = ['completed', 'tags']
+    
+    def filter_has_due_date(self, queryset, name, value):
+        if value:
+            return queryset.exclude(due_date__isnull=True)
+        else:
+            return queryset.filter(due_date__isnull=True)
+    
+    def filter_overdue(self, queryset, name, value):
+        if value:
+            return queryset.filter(due_date__lt=timezone.now(), completed=False)
+        return queryset
+    
+    def filter_search(self, queryset, name, value):
+        return queryset.filter(
+            Q(name__icontains=value) | Q(description__icontains=value)
+        )
 
 class TagViewSet(viewsets.ModelViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
+    permission_classes = [IsAuthenticated]
     
     def get_queryset(self):
         user = self.request.user
@@ -30,21 +68,77 @@ class NoteViewSet(viewsets.ModelViewSet):
     
     def get_queryset(self):
         return Note.objects.filter(author=self.request.user).order_by("created_at")
-
+        
 class TaskViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     serializer_class = TaskSerializer
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_class = TaskFilter
+    search_fields = ['name', 'description']
+    ordering_fields = ['created_at', 'updated_at', 'due_date', 'name', 'completed']
+    ordering = 'due_date', '-created_at'
 
     def get_queryset(self):
-        return Task.objects.filter(author=self.request.user).order_by("due_date")
+        return Task.objects.filter(author=self.request.user).prefetch_related('tags').order_by(self.ordering)
+
+    @action(detail=True, methods=['post'])
+    def complete(self, request, pk=None):
+        task = self.get_object()
+        task.completed = True
+        task.save(update_fields=['completed'])
+        serializer = self.get_serializer(task)
+        return Response(serializer.data)
     
-    def start(self, request):
+    @action(detail=True, methods=['post'])
+    def uncomplete(self, request, pk=None):
+        task = self.get_object()
+        task.completed = False
+        task.save(update_fields=['completed'])
+        serializer = self.get_serializer(task)
+        return Response(serializer.data)
+    
+    @action(detail=False, methods=['post'])
+    def bulk_complete(self, request):
+        task_ids = request.data.get('task_ids', [])
+        if not task_ids:
+            return Response({"detail": "task_ids is required"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        tasks = Task.objects.filter(id__in=task_ids, author=request.user)
+        updated_count = tasks.update(completed=True)
+        
+        return Response({"detail": f"{updated_count} tasks marked as completed", "updated_count": updated_count})
+    
+    @action(detail=False, methods=['post'])
+    def bulk_uncomplete(self, request):
+        task_ids = request.data.get('task_ids', [])
+        if not task_ids:
+            return Response({"detail": "task_ids is required"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        tasks = Task.objects.filter(id__in=task_ids, author=request.user)
+        updated_count = tasks.update(completed=False)
+        
+        return Response({"detail": f"{updated_count} tasks marked as uncompleted", "updated_count": updated_count})
+
+    @action(detail=False, methods=['post'])
+    def bulk_delete(self, request):
+        task_ids = request.data.get('task_ids', [])
+        if not task_ids:
+            return Response({"detail": "task_ids is required"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        tasks = Task.objects.filter(id__in=task_ids, author=request.user)
+        deleted_count, _ = tasks.delete()
+        
+        return Response({"detail": f"{deleted_count} tasks deleted", "deleted_count": deleted_count})
+
+    @action(detail=True, methods=['post'])
+    def start_pomodoro(self, request, pk=None):
         task = self.get_object()
         task.pomodoro_start = timezone.now()
         task.save(update_fields=["pomodoro_start"])
-        return Response({"status: started", "pomodoro_start", task.pomodoro_start})
+        return Response({"status": "started", "pomodoro_start": task.pomodoro_start})
     
-    def end(self, request):
+    @action(detail=True, methods=['post'])
+    def end_pomodoro(self, request, pk=None):
         task = self.get_object()
         if not task.pomodoro_start:
             return Response({"detail": "There is no pomodoro timer active."}, status=status.HTTP_400_BAD_REQUEST)
@@ -58,6 +152,19 @@ class TaskViewSet(viewsets.ModelViewSet):
         task.save(update_fields=["last_pomodoro_duration", "total_pomodoro_time", "pomodoro_start"])
 
         return Response({"status": "ended", "last_pomodoro_duration": duration, "total_pomodoro_time": task.total_pomodoro_time})
+
+class TaskStatsView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request, *args, **kwargs):
+        user_tasks = Task.objects.filter(author=request.user)
+        total_tasks = user_tasks.count()
+        completed_tasks = user_tasks.filter(completed=True).count()
+        pending_tasks = total_tasks - completed_tasks
+        overdue_tasks = user_tasks.filter(due_date__lt=timezone.now(), completed=False).count()
+        tag_stats = user_tasks.values('tags__name').annotate(count=Count('id'), completed_count=Count('id', filter=Q(completed=True))).exclude(tags__name__isnull=True)
+        
+        return Response({"total_tasks": total_tasks, "completed_tasks": completed_tasks, "pending_tasks": pending_tasks, "overdue_tasks": overdue_tasks, "tag_stats": list(tag_stats)})
     
 class CalendarView(APIView):
     permission_classes = [IsAuthenticated]
@@ -80,4 +187,3 @@ class CalendarView(APIView):
                     res[date].append(task)
         
         return Response(res)
-                
