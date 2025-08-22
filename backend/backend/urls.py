@@ -17,15 +17,22 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from api.views import TagViewSet, NoteViewSet, TaskViewSet, CalendarView, TaskStatsView
+from rest_framework_simplejwt.views import TokenRefreshView
+from api.views import TagViewSet, NoteViewSet, TaskViewSet, CalendarView, TaskStatsView, UserView, login_view, register_view, logout_view, user_profile_view
 
 router = DefaultRouter()
 router.register(r'tags', TagViewSet, basename='tag')
 router.register(r'notes', NoteViewSet, basename='note')
 router.register(r'tasks', TaskViewSet, basename='task')
+router.register(r'users', UserView, basename='user')
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('api/login/', login_view, name='login'),
+    path('api/logout/', logout_view, name='logout'),
+    path('api/register/', register_view, name='register'),
+    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('api/profile/', user_profile_view, name='user_profile'),
     path('api/tasks/stats/', TaskStatsView.as_view(), name='task-stats'),
     path('api/calendar/', CalendarView.as_view(), name='calendar'),
     path('api/', include(router.urls)),

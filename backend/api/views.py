@@ -1,20 +1,126 @@
 from django.shortcuts import render
 from .models import Tag, Note, Task
-from .serializers import TagSerializer, NoteSerializer, TaskSerializer
+from .serializers import TagSerializer, NoteSerializer, TaskSerializer, UserSerializer
 from rest_framework import viewsets
 from rest_framework.views import APIView
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.decorators import action
+from rest_framework.decorators import action, api_view, permission_classes
+from rest_framework.permissions import AllowAny
 from rest_framework import filters
 from django_filters.rest_framework import DjangoFilterBackend
 from django_filters import rest_framework as django_filters
 from django.utils import timezone
 from django.db.models import Q, Count
+from django.contrib.auth.models import User
+from django.contrib.auth import authenticate
+from rest_framework_simplejwt.tokens import RefreshToken
+
+def set_jwt_cookies(response, refresh_token):
+    response.set_cookie(
+        'access_token',
+        str(refresh_token.access_token),
+        max_age=60 * 60,
+        httponly=True,
+        secure=False,
+        samesite='Lax'
+    )
+    
+    response.set_cookie(
+        'refresh_token',
+        str(refresh_token),
+        max_age=24 * 60 * 60,
+        httponly=True,
+        secure=False,
+        samesite='Lax'
+    )
 
 # Create your views here.
+
+class UserView(viewsets.ModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = [AllowAny]
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def login_view(request):
+    username = request.data.get('username')
+    password = request.data.get('password')
+    
+    if not username or not password:
+        return Response({'error': 'Please provide both username and password'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    user = authenticate(username=username, password=password)
+    
+    if user is None:
+        return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
+    
+    if not user.is_active:
+        return Response({'error': 'User account is disabled'}, status=status.HTTP_401_UNAUTHORIZED)
+    
+    refresh = RefreshToken.for_user(user)
+    
+    response = Response({
+        'user': {
+            'id': user.id,
+            'username': user.username,
+            'first_name': user.first_name,
+            'last_name': user.last_name,
+        }
+    })
+    
+    set_jwt_cookies(response, refresh)
+    
+    return response
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def register_view(request):
+    serializer = UserSerializer(data=request.data)
+    
+    if serializer.is_valid():
+        try:
+            user = serializer.save()
+            refresh = RefreshToken.for_user(user)
+            
+            response = Response({
+                'user': {
+                    'id': user.id,
+                    'username': user.username,
+                    'first_name': user.first_name,
+                    'last_name': user.last_name,
+                }
+            }, status=status.HTTP_201_CREATED)
+            
+            set_jwt_cookies(response, refresh)
+            
+            return response
+        except Exception as e:
+            return Response({'error': 'Failed to create user account'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['POST'])
+def logout_view(request):
+    response = Response({'message': 'Successfully logged out'})
+        
+    response.delete_cookie('access_token')
+    response.delete_cookie('refresh_token')
+    
+    return response
+
+@api_view(['GET'])
+def user_profile_view(request):
+    user = request.user
+    return Response({
+        'id': user.id,
+        'username': user.username,
+        'first_name': user.first_name,
+        'last_name': user.last_name,
+    })
 
 class TaskFilter(django_filters.FilterSet):
     tags = django_filters.ModelMultipleChoiceFilter(
@@ -54,13 +160,19 @@ class TagViewSet(viewsets.ModelViewSet):
     
     def get_queryset(self):
         user = self.request.user
-        return Tag.objects.filter(author__in=[None, self.request.user])
-        # REMEMBER TO SET AUTHOR = NULL FOR BUILT IN TAGS FOR THE FUTURE
+        return Tag.objects.filter(
+            Q(author__isnull=True) | Q(author=user)
+        ).order_by('is_builtin', 'name')
 
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
+    
     def perform_destroy(self, instance):
         if instance.is_builtin:
-            raise PermissionDenied("You can't delete Built‑in tags.")
-        return super().perform_destroy(instance)    
+            raise PermissionDenied("You can't delete built-in tags.")
+        if instance.author != self.request.user:
+            raise PermissionDenied("You can only delete your own tags.")
+        return super().perform_destroy(instance)
     
 class NoteViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
