@@ -191,10 +191,13 @@ class TaskViewSet(viewsets.ModelViewSet):
     filterset_class = TaskFilter
     search_fields = ['name', 'description']
     ordering_fields = ['created_at', 'updated_at', 'due_date', 'name', 'completed']
-    ordering = 'due_date', '-created_at'
+    ordering = ['due_date', '-created_at']
 
     def get_queryset(self):
-        return Task.objects.filter(author=self.request.user).prefetch_related('tags').order_by(self.ordering)
+        return Task.objects.filter(author=self.request.user).prefetch_related('tags').order_by(*self.ordering)
+
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
 
     @action(detail=True, methods=['post'])
     def complete(self, request, pk=None):
