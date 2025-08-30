@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
 import TaskModal from '../components/TaskModal';
 import ConfirmationModal from '../components/ConfirmationModal';
+import PomodoroTimer from '../components/PomodoroTimer';
 
 const Tasks = () => {
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isPomodoroOpen, setIsPomodoroOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState(null);
   const [modalMode, setModalMode] = useState('create');
 
@@ -46,6 +48,15 @@ const Tasks = () => {
   const handleDeleteTask = (task) => {
     setSelectedTask(task);
     setIsDeleteModalOpen(true);
+  };
+
+  const handleStartPomodoro = (task) => {
+    setSelectedTask(task);
+    setIsPomodoroOpen(true);
+  };
+
+  const handlePomodoroComplete = async (session) => {
+    await fetchTasks();
   };
 
   const toggleTaskCompletion = async (task) => {
@@ -245,6 +256,15 @@ const Tasks = () => {
                             )}
                           </div>
                         )}
+
+                        {task.total_pomodoro_time && task.total_pomodoro_time !== '0:00:00' && (
+                          <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">
+                            <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
+                            </svg>
+                            🍅 {task.total_pomodoro_time}
+                          </span>
+                        )}
                       </div>
                       
                       <div className="flex items-center justify-between text-xs text-gray-500 mt-4 pt-3 border-t border-gray-200/50">
@@ -267,6 +287,17 @@ const Tasks = () => {
                   </div>
                   
                   <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-all duration-200 ml-4">
+                    {!task.completed && (
+                      <button 
+                        onClick={() => handleStartPomodoro(task)}
+                        className="text-red-600 hover:text-red-700 p-2 rounded-lg hover:bg-red-50/80 transition-all duration-200 hover:scale-110"
+                        title="Start Pomodoro Timer"
+                      >
+                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
+                        </svg>
+                      </button>
+                    )}
                     <button 
                       onClick={() => handleEditTask(task)}
                       className="text-green-600 hover:text-green-700 p-2 rounded-lg hover:bg-green-50/80 transition-all duration-200 hover:scale-110"
@@ -311,6 +342,13 @@ const Tasks = () => {
         confirmText="Delete Task"
         itemName="name"
         itemContent="description"
+      />
+
+      <PomodoroTimer
+        isOpen={isPomodoroOpen}
+        onClose={() => setIsPomodoroOpen(false)}
+        task={selectedTask}
+        onSessionComplete={handlePomodoroComplete}
       />
     </>
   );
