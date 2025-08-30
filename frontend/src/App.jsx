@@ -8,6 +8,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Tasks from './pages/Tasks';
 import Notes from './pages/Notes';
+import Calendar from './pages/Calendar';
 
 function App() {
   return (
@@ -33,6 +34,14 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <Notes />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/calendar" 
+                element={
+                  <ProtectedRoute>
+                    <Calendar />
                   </ProtectedRoute>
                 } 
               />

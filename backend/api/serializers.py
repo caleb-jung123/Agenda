@@ -30,12 +30,30 @@ class TagSerializer(serializers.ModelSerializer):
         return super().create(validated_data)
         
 class NoteSerializer(serializers.ModelSerializer):
+    tags = TagSerializer(many=True, read_only=True)
+    tag_ids = serializers.PrimaryKeyRelatedField(
+        many=True, 
+        queryset=Tag.objects.all(), 
+        source='tags', 
+        write_only=True, 
+        required=False
+    )
+    
     class Meta:
         model = Note
         fields = "__all__"
         read_only_fields = ["id", "author"]
     
 class TaskSerializer(serializers.ModelSerializer):
+    tags = TagSerializer(many=True, read_only=True)
+    tag_ids = serializers.PrimaryKeyRelatedField(
+        many=True, 
+        queryset=Tag.objects.all(), 
+        source='tags', 
+        write_only=True, 
+        required=False
+    )
+    
     class Meta:
         model = Task
         fields = "__all__"

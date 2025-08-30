@@ -180,6 +180,9 @@ class NoteViewSet(viewsets.ModelViewSet):
     
     def get_queryset(self):
         return Note.objects.filter(author=self.request.user).order_by("created_at")
+    
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
         
 class TaskViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
@@ -282,20 +285,55 @@ class CalendarView(APIView):
     permission_classes = [IsAuthenticated]
     
     def get(self, request, *args, **kwargs):
-        res = {}
-        tasks = Task.objects.filter(author=self.request.user).order_by("due_date")
-        month = int(request.GET.get("month"))
-        year = int(request.GET.get("year"))
+        from datetime import datetime
         
-        for raw_task in tasks:
-            task_month = raw_task.due_date.month
-            task_year = raw_task.due_date.year
-            task = TaskSerializer(raw_task).data
-            date = task["due_date"]
-            if month == task_month and year == task_year:
-                if date not in res:
-                    res[date] = [task]
-                else:
-                    res[date].append(task)
+        month = request.GET.get("month")
+        year = request.GET.get("year")
+        day = request.GET.get("day")
         
-        return Response(res)
+        if not month or not year:
+            return Response({"error": "Month and year parameters are required"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            month = int(month)
+            year = int(year)
+            if day:
+                day = int(day)
+        except ValueError:
+            return Response({"error": "Invalid date parameters"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        result = {"tasks": {}, "notes": {}}
+        
+        tasks = Task.objects.filter(
+            author=self.request.user,
+            due_date__isnull=False
+        ).order_by("due_date")
+        
+        notes = Note.objects.filter(author=self.request.user).order_by("created_at")
+        
+        for task in tasks:
+            if task.due_date:
+                task_month = task.due_date.month
+                task_year = task.due_date.year
+                
+                if year == task_year and month == task_month:
+                    task_data = TaskSerializer(task).data
+                    date_key = task.due_date.date().isoformat()
+                    
+                    if date_key not in result["tasks"]:
+                        result["tasks"][date_key] = []
+                    result["tasks"][date_key].append(task_data)
+        
+        for note in notes:
+            note_month = note.created_at.month
+            note_year = note.created_at.year
+            
+            if year == note_year and month == note_month:
+                note_data = NoteSerializer(note).data
+                date_key = note.created_at.date().isoformat()
+                
+                if date_key not in result["notes"]:
+                    result["notes"][date_key] = []
+                result["notes"][date_key].append(note_data)
+        
+        return Response(result)
