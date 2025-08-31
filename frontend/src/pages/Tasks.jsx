@@ -139,8 +139,8 @@ const Tasks = () => {
     return (
       <div className="flex items-center justify-center py-12">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading tasks...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-neutral-900 mx-auto"></div>
+          <p className="mt-4 text-neutral-600">Loading tasks...</p>
         </div>
       </div>
     );
@@ -151,14 +151,14 @@ const Tasks = () => {
       <div className="max-w-7xl mx-auto">
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent mb-2">
-              📋 Tasks
+            <h1 className="text-3xl font-bold text-neutral-900 mb-2">
+              Tasks
             </h1>
-            <p className="text-gray-600">Organize and track your tasks efficiently</p>
+            <p className="text-neutral-600">Organize and track your tasks efficiently</p>
           </div>
           <button 
             onClick={handleCreateTask}
-            className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center space-x-2"
+            className="bg-neutral-900 hover:bg-neutral-800 text-white px-6 py-3 rounded-lg font-medium transition-all duration-200 flex items-center space-x-2"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -168,15 +168,14 @@ const Tasks = () => {
         </div>
 
         {tasks.length === 0 ? (
-          <div className="text-center py-16 bg-white/50 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-200/50">
-            <div className="text-8xl mb-6">📝</div>
-            <h3 className="text-2xl font-bold text-gray-800 mb-3">No tasks yet</h3>
-            <p className="text-gray-600 mb-8 max-w-md mx-auto">
-              Start organizing your work. Create your first task to boost your productivity!
+          <div className="text-center py-16 bg-white rounded-lg border border-neutral-200">
+            <h3 className="text-xl font-semibold text-neutral-900 mb-3">No tasks yet</h3>
+            <p className="text-neutral-600 mb-8 max-w-md mx-auto">
+              Start organizing your work. Create your first task to boost your productivity.
             </p>
             <button 
               onClick={handleCreateTask}
-              className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white px-8 py-3 rounded-xl font-semibold transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
+              className="bg-neutral-900 hover:bg-neutral-800 text-white px-8 py-3 rounded-lg font-medium transition-all duration-200"
             >
               Create First Task
             </button>
@@ -184,15 +183,15 @@ const Tasks = () => {
         ) : (
           <div className="space-y-4">
             {tasks.map(task => (
-              <div key={task.id} className="bg-white/70 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-200/50 p-6 hover:shadow-xl transition-all duration-200 group">
+              <div key={task.id} className="bg-white rounded-lg border border-neutral-200 p-6 hover:border-neutral-300 transition-all duration-200 group">
                 <div className="flex items-start justify-between">
                   <div className="flex items-start space-x-4 flex-1">
                     <button 
                       onClick={() => toggleTaskCompletion(task)}
-                      className={`mt-1 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-200 hover:scale-110 ${
+                      className={`mt-1 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-200 ${
                         task.completed 
-                          ? 'bg-green-500 border-green-500 text-white' 
-                          : 'border-gray-300 hover:border-green-400'
+                          ? 'bg-neutral-900 border-neutral-900 text-white' 
+                          : 'border-neutral-300 hover:border-neutral-400'
                       }`}
                     >
                       {task.completed && (
@@ -203,16 +202,16 @@ const Tasks = () => {
                     </button>
                     
                     <div className="flex-1 min-w-0">
-                      <h3 className={`text-lg font-bold transition-colors mb-2 ${
+                      <h3 className={`text-lg font-semibold transition-colors mb-2 ${
                         task.completed 
-                          ? 'text-gray-500 line-through' 
-                          : 'text-gray-900 group-hover:text-green-600'
+                          ? 'text-neutral-500 line-through' 
+                          : 'text-neutral-900'
                       }`}>
                         {task.name}
                       </h3>
                       
                       {task.description && (
-                        <p className="text-gray-600 text-sm leading-relaxed mb-3 whitespace-pre-wrap">
+                        <p className="text-neutral-600 text-sm leading-relaxed mb-3 whitespace-pre-wrap">
                           {task.description}
                         </p>
                       )}
@@ -220,17 +219,17 @@ const Tasks = () => {
                       <div className="flex flex-wrap items-center gap-3">
                         <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
                           task.completed 
-                            ? 'bg-green-100 text-green-800' 
-                            : 'bg-yellow-100 text-yellow-800'
+                            ? 'bg-neutral-100 text-neutral-800' 
+                            : 'bg-neutral-100 text-neutral-600'
                         }`}>
-                          {task.completed ? '✅ Completed' : '⏳ Pending'}
+                          {task.completed ? 'Completed' : 'Pending'}
                         </span>
                         
                         {task.due_date && (
                           <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
                             isOverdue(task.due_date, task.completed) 
-                              ? 'bg-red-100 text-red-800' 
-                              : 'bg-blue-100 text-blue-800'
+                              ? 'bg-neutral-200 text-neutral-800' 
+                              : 'bg-neutral-100 text-neutral-600'
                           }`}>
                             <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -244,13 +243,13 @@ const Tasks = () => {
                             {task.tags.slice(0, 3).map((tag, index) => (
                               <span 
                                 key={index}
-                                className="inline-block bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full font-medium"
+                                className="inline-block bg-neutral-100 text-neutral-700 text-xs px-2 py-1 rounded-full font-medium"
                               >
                                 {typeof tag === 'object' ? tag.name : tag}
                               </span>
                             ))}
                             {task.tags.length > 3 && (
-                              <span className="inline-block bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded-full font-medium">
+                              <span className="inline-block bg-neutral-100 text-neutral-600 text-xs px-2 py-1 rounded-full font-medium">
                                 +{task.tags.length - 3}
                               </span>
                             )}
@@ -258,16 +257,16 @@ const Tasks = () => {
                         )}
 
                         {task.total_pomodoro_time && task.total_pomodoro_time !== '0:00:00' && (
-                          <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">
+                          <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-neutral-100 text-neutral-700">
                             <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
                               <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
                             </svg>
-                            🍅 {task.total_pomodoro_time}
+                            {task.total_pomodoro_time}
                           </span>
                         )}
                       </div>
                       
-                      <div className="flex items-center justify-between text-xs text-gray-500 mt-4 pt-3 border-t border-gray-200/50">
+                      <div className="flex items-center justify-between text-xs text-neutral-500 mt-4 pt-3 border-t border-neutral-200">
                         <div className="flex items-center space-x-1">
                           <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -290,7 +289,7 @@ const Tasks = () => {
                     {!task.completed && (
                       <button 
                         onClick={() => handleStartPomodoro(task)}
-                        className="text-red-600 hover:text-red-700 p-2 rounded-lg hover:bg-red-50/80 transition-all duration-200 hover:scale-110"
+                        className="text-neutral-600 hover:text-neutral-900 p-2 rounded-lg hover:bg-neutral-100 transition-all duration-200"
                         title="Start Pomodoro Timer"
                       >
                         <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
@@ -300,7 +299,7 @@ const Tasks = () => {
                     )}
                     <button 
                       onClick={() => handleEditTask(task)}
-                      className="text-green-600 hover:text-green-700 p-2 rounded-lg hover:bg-green-50/80 transition-all duration-200 hover:scale-110"
+                      className="text-neutral-600 hover:text-neutral-900 p-2 rounded-lg hover:bg-neutral-100 transition-all duration-200"
                       title="Edit task"
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -309,7 +308,7 @@ const Tasks = () => {
                     </button>
                     <button 
                       onClick={() => handleDeleteTask(task)}
-                      className="text-red-600 hover:text-red-700 p-2 rounded-lg hover:bg-red-50/80 transition-all duration-200 hover:scale-110"
+                      className="text-neutral-600 hover:text-neutral-900 p-2 rounded-lg hover:bg-neutral-100 transition-all duration-200"
                       title="Delete task"
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

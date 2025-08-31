@@ -88,8 +88,8 @@ const Notes = () => {
     return (
       <div className="flex items-center justify-center py-12">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading notes...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-neutral-900 mx-auto"></div>
+          <p className="mt-4 text-neutral-600">Loading notes...</p>
         </div>
       </div>
     );
@@ -100,14 +100,14 @@ const Notes = () => {
       <div className="max-w-7xl mx-auto">
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-2">
-              📝 Notes
+            <h1 className="text-3xl font-bold text-neutral-900 mb-2">
+              Notes
             </h1>
-            <p className="text-gray-600">Capture your thoughts and ideas</p>
+            <p className="text-neutral-600">Capture your thoughts and ideas</p>
           </div>
           <button 
             onClick={handleCreateNote}
-            className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center space-x-2"
+            className="bg-neutral-900 hover:bg-neutral-800 text-white px-6 py-3 rounded-lg font-medium transition-all duration-200 flex items-center space-x-2"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -117,15 +117,14 @@ const Notes = () => {
         </div>
 
         {notes.length === 0 ? (
-          <div className="text-center py-16 bg-white/50 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-200/50">
-            <div className="text-8xl mb-6">📄</div>
-            <h3 className="text-2xl font-bold text-gray-800 mb-3">No notes yet</h3>
-            <p className="text-gray-600 mb-8 max-w-md mx-auto">
-              Start capturing your thoughts and ideas. Create your first note to get organized!
+          <div className="text-center py-16 bg-white rounded-lg border border-neutral-200">
+            <h3 className="text-xl font-semibold text-neutral-900 mb-3">No notes yet</h3>
+            <p className="text-neutral-600 mb-8 max-w-md mx-auto">
+              Start capturing your thoughts and ideas. Create your first note to get organized.
             </p>
             <button 
               onClick={handleCreateNote}
-              className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-8 py-3 rounded-xl font-semibold transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
+              className="bg-neutral-900 hover:bg-neutral-800 text-white px-8 py-3 rounded-lg font-medium transition-all duration-200"
             >
               Create First Note
             </button>
@@ -133,16 +132,16 @@ const Notes = () => {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {notes.map(note => (
-              <div key={note.id} className="bg-white/70 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-200/50 p-6 hover:shadow-xl transition-all duration-200 group hover:scale-105">
+              <div key={note.id} className="bg-white rounded-lg border border-neutral-200 p-6 hover:border-neutral-300 transition-all duration-200 group">
 
                 <div className="flex items-start justify-between mb-4">
-                  <h3 className="text-lg font-bold text-gray-900 group-hover:text-blue-600 transition-colors line-clamp-2 pr-2">
+                  <h3 className="text-lg font-semibold text-neutral-900 transition-colors line-clamp-2 pr-2">
                     {note.name}
                   </h3>
                   <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-all duration-200 flex-shrink-0">
                     <button 
                       onClick={() => handleEditNote(note)}
-                      className="text-blue-600 hover:text-blue-700 p-2 rounded-lg hover:bg-blue-50/80 transition-all duration-200 hover:scale-110"
+                      className="text-neutral-600 hover:text-neutral-900 p-2 rounded-lg hover:bg-neutral-100 transition-all duration-200"
                       title="Edit note"
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -151,7 +150,7 @@ const Notes = () => {
                     </button>
                     <button 
                       onClick={() => handleDeleteNote(note)}
-                      className="text-red-600 hover:text-red-700 p-2 rounded-lg hover:bg-red-50/80 transition-all duration-200 hover:scale-110"
+                      className="text-neutral-600 hover:text-neutral-900 p-2 rounded-lg hover:bg-neutral-100 transition-all duration-200"
                       title="Delete note"
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -163,7 +162,7 @@ const Notes = () => {
                 
 
                 <div className="mb-4">
-                  <p className="text-gray-600 text-sm leading-relaxed line-clamp-6 whitespace-pre-wrap">
+                  <p className="text-neutral-600 text-sm leading-relaxed line-clamp-6 whitespace-pre-wrap">
                     {note.notes}
                   </p>
                 </div>
@@ -175,13 +174,13 @@ const Notes = () => {
                       {note.tags.slice(0, 3).map((tag, index) => (
                         <span 
                           key={index}
-                          className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full font-medium"
+                          className="inline-block bg-neutral-100 text-neutral-700 text-xs px-2 py-1 rounded-full font-medium"
                         >
                           {typeof tag === 'object' ? tag.name : tag}
                         </span>
                       ))}
                       {note.tags.length > 3 && (
-                        <span className="inline-block bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded-full font-medium">
+                        <span className="inline-block bg-neutral-100 text-neutral-600 text-xs px-2 py-1 rounded-full font-medium">
                           +{note.tags.length - 3}
                         </span>
                       )}
@@ -190,7 +189,7 @@ const Notes = () => {
                 )}
                 
 
-                <div className="flex items-center justify-between text-xs text-gray-500 pt-4 border-t border-gray-200/50">
+                <div className="flex items-center justify-between text-xs text-neutral-500 pt-4 border-t border-neutral-200">
                   <div className="flex items-center space-x-1">
                     <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />

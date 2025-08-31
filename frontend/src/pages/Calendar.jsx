@@ -118,7 +118,7 @@ const Calendar = () => {
 
     for (let i = 0; i < firstDay; i++) {
       days.push(
-        <div key={`empty-${i}`} className="h-32 bg-gray-50/50 rounded-lg"></div>
+        <div key={`empty-${i}`} className="h-32 bg-neutral-50 rounded-lg"></div>
       );
     }
     
@@ -134,18 +134,18 @@ const Calendar = () => {
         <div
           key={day}
           onClick={() => setSelectedDate(selectedDate === dateKey ? null : dateKey)}
-          className={`h-32 p-2 rounded-lg border-2 cursor-pointer transition-all duration-200 ${
+          className={`h-32 p-2 rounded-lg border cursor-pointer transition-all duration-200 ${
             isSelected
-              ? 'border-blue-500 bg-blue-50/80 shadow-lg scale-105'
+              ? 'border-neutral-900 bg-neutral-100'
               : isToday
-              ? 'border-blue-300 bg-blue-50/50 shadow-md'
+              ? 'border-neutral-400 bg-neutral-50'
               : hasItems
-              ? 'border-gray-300 bg-white hover:border-blue-400 hover:shadow-md'
-              : 'border-gray-200 bg-white/70 hover:border-gray-300'
+              ? 'border-neutral-300 bg-white hover:border-neutral-400'
+              : 'border-neutral-200 bg-white hover:border-neutral-300'
           }`}
         >
           <div className={`text-sm font-semibold mb-1 ${
-            isToday ? 'text-blue-600' : 'text-gray-900'
+            isToday ? 'text-neutral-900' : 'text-neutral-900'
           }`}>
             {day}
           </div>
@@ -156,29 +156,29 @@ const Calendar = () => {
                 key={`task-${task.id}`}
                 className={`text-xs px-2 py-1 rounded truncate ${
                   task.completed
-                    ? 'bg-green-100 text-green-700 line-through'
+                    ? 'bg-neutral-200 text-neutral-700 line-through'
                     : task.due_date && new Date(task.due_date) < new Date()
-                    ? 'bg-red-100 text-red-700'
-                    : 'bg-blue-100 text-blue-700'
+                    ? 'bg-neutral-200 text-neutral-800'
+                    : 'bg-neutral-100 text-neutral-700'
                 }`}
                 title={task.name}
               >
-                📋 {task.name}
+                {task.name}
               </div>
             ))}
             
             {notes.slice(0, 2).map((note, index) => (
               <div
                 key={`note-${note.id}`}
-                className="text-xs px-2 py-1 bg-purple-100 text-purple-700 rounded truncate"
+                className="text-xs px-2 py-1 bg-neutral-100 text-neutral-600 rounded truncate"
                 title={note.name}
               >
-                📝 {note.name}
+                {note.name}
               </div>
             ))}
             
             {(tasks.length + notes.length) > 2 && (
-              <div className="text-xs text-gray-500 px-2">
+              <div className="text-xs text-neutral-500 px-2">
                 +{(tasks.length + notes.length) - 2} more
               </div>
             )}
@@ -197,23 +197,21 @@ const Calendar = () => {
     const date = new Date(selectedDate);
     
     return (
-      <div className="mt-8 bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-200/50 p-6">
-        <h3 className="text-2xl font-bold text-gray-900 mb-4 flex items-center space-x-2">
-          <span>📅</span>
-          <span>{date.toLocaleDateString('en-US', { 
+      <div className="mt-8 bg-white rounded-lg border border-neutral-200 p-6">
+        <h3 className="text-2xl font-bold text-neutral-900 mb-4">
+          {date.toLocaleDateString('en-US', { 
             weekday: 'long', 
             year: 'numeric', 
             month: 'long', 
             day: 'numeric' 
-          })}</span>
+          })}
         </h3>
         
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
           <div>
-            <h4 className="text-lg font-semibold text-gray-800 mb-3 flex items-center space-x-2">
-              <span>📋</span>
-              <span>Tasks ({tasks.length})</span>
+            <h4 className="text-lg font-semibold text-neutral-800 mb-3">
+              Tasks ({tasks.length})
             </h4>
             
             {tasks.length > 0 ? (
@@ -223,25 +221,25 @@ const Calendar = () => {
                     key={task.id}
                     className={`p-3 rounded-lg border ${
                       task.completed
-                        ? 'bg-green-50 border-green-200'
+                        ? 'bg-neutral-100 border-neutral-200'
                         : task.due_date && new Date(task.due_date) < new Date()
-                        ? 'bg-red-50 border-red-200'
-                        : 'bg-blue-50 border-blue-200'
+                        ? 'bg-neutral-100 border-neutral-300'
+                        : 'bg-neutral-50 border-neutral-200'
                     }`}
                   >
                     <div className={`font-medium ${
-                      task.completed ? 'line-through text-green-700' : 'text-gray-900'
+                      task.completed ? 'line-through text-neutral-600' : 'text-neutral-900'
                     }`}>
                       {task.name}
                     </div>
                     {task.description && (
-                      <div className="text-sm text-gray-600 mt-1">
+                      <div className="text-sm text-neutral-600 mt-1">
                         {task.description}
                       </div>
                     )}
-                    <div className="flex items-center justify-between mt-2 text-xs text-gray-500">
+                    <div className="flex items-center justify-between mt-2 text-xs text-neutral-500">
                       <span>
-                        {task.completed ? '✅ Completed' : '⏳ Pending'}
+                        {task.completed ? 'Completed' : 'Pending'}
                       </span>
                       {task.due_date && (
                         <span>
@@ -256,7 +254,7 @@ const Calendar = () => {
                 ))}
               </div>
             ) : (
-              <div className="text-gray-500 text-center py-4">
+              <div className="text-neutral-500 text-center py-4">
                 No tasks for this date
               </div>
             )}
@@ -264,9 +262,8 @@ const Calendar = () => {
           
 
           <div>
-            <h4 className="text-lg font-semibold text-gray-800 mb-3 flex items-center space-x-2">
-              <span>📝</span>
-              <span>Notes ({notes.length})</span>
+            <h4 className="text-lg font-semibold text-neutral-800 mb-3">
+              Notes ({notes.length})
             </h4>
             
             {notes.length > 0 ? (
@@ -274,15 +271,15 @@ const Calendar = () => {
                 {notes.map((note) => (
                   <div
                     key={note.id}
-                    className="p-3 rounded-lg border bg-purple-50 border-purple-200"
+                    className="p-3 rounded-lg border bg-neutral-50 border-neutral-200"
                   >
-                    <div className="font-medium text-gray-900">
+                    <div className="font-medium text-neutral-900">
                       {note.name}
                     </div>
-                    <div className="text-sm text-gray-600 mt-1 line-clamp-3">
+                    <div className="text-sm text-neutral-600 mt-1 line-clamp-3">
                       {note.notes}
                     </div>
-                    <div className="text-xs text-gray-500 mt-2">
+                    <div className="text-xs text-neutral-500 mt-2">
                       Created: {new Date(note.created_at).toLocaleTimeString('en-US', { 
                         hour: '2-digit', 
                         minute: '2-digit' 
@@ -292,7 +289,7 @@ const Calendar = () => {
                 ))}
               </div>
             ) : (
-              <div className="text-gray-500 text-center py-4">
+              <div className="text-neutral-500 text-center py-4">
                 No notes for this date
               </div>
             )}
@@ -306,8 +303,8 @@ const Calendar = () => {
     return (
       <div className="flex items-center justify-center py-12">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading calendar...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-neutral-900 mx-auto"></div>
+          <p className="mt-4 text-neutral-600">Loading calendar...</p>
         </div>
       </div>
     );
@@ -318,10 +315,10 @@ const Calendar = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-center justify-between mb-8 gap-4">
         <div>
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-2">
-            📅 Calendar
+          <h1 className="text-3xl font-bold text-neutral-900 mb-2">
+            Calendar
           </h1>
-          <p className="text-gray-600">View your tasks and notes by date</p>
+          <p className="text-neutral-600">View your tasks and notes by date</p>
         </div>
         
         <div className="flex items-center space-x-4">
@@ -330,25 +327,25 @@ const Calendar = () => {
               onClick={() => setShowTasksOnly(!showTasksOnly)}
               className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                 showTasksOnly
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  ? 'bg-neutral-900 text-white'
+                  : 'bg-neutral-100 text-neutral-700 hover:bg-neutral-200'
               }`}
             >
-              📋 Tasks Only
+              Tasks Only
             </button>
             <button
               onClick={() => setShowNotesOnly(!showNotesOnly)}
               className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                 showNotesOnly
-                  ? 'bg-purple-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  ? 'bg-neutral-900 text-white'
+                  : 'bg-neutral-100 text-neutral-700 hover:bg-neutral-200'
               }`}
             >
-              📝 Notes Only
+              Notes Only
             </button>
             <button
               onClick={navigateToToday}
-              className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 shadow-lg hover:shadow-xl"
+              className="bg-neutral-900 hover:bg-neutral-800 text-white px-4 py-2 rounded-lg font-medium transition-all duration-200"
             >
               Today
             </button>
@@ -357,24 +354,24 @@ const Calendar = () => {
       </div>
 
 
-      <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-200/50 p-6 mb-6">
+      <div className="bg-white rounded-lg border border-neutral-200 p-6 mb-6">
         <div className="flex items-center justify-between mb-6">
           <button
             onClick={() => navigateMonth(-1)}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            className="p-2 hover:bg-neutral-100 rounded-lg transition-colors"
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
           </button>
           
-          <h2 className="text-2xl font-bold text-gray-900">
+          <h2 className="text-2xl font-bold text-neutral-900">
             {months[currentDate.getMonth()]} {currentDate.getFullYear()}
           </h2>
           
           <button
             onClick={() => navigateMonth(1)}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            className="p-2 hover:bg-neutral-100 rounded-lg transition-colors"
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -385,7 +382,7 @@ const Calendar = () => {
 
         <div className="grid grid-cols-7 gap-2 mb-2">
           {weekdays.map((day) => (
-            <div key={day} className="text-center font-semibold text-gray-700 py-2">
+            <div key={day} className="text-center font-semibold text-neutral-700 py-2">
               {day}
             </div>
           ))}
