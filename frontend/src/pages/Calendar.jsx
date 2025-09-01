@@ -118,7 +118,7 @@ const Calendar = () => {
 
     for (let i = 0; i < firstDay; i++) {
       days.push(
-        <div key={`empty-${i}`} className="h-32 bg-neutral-50 rounded-lg"></div>
+        <div key={`empty-${i}`} className="h-32 rounded-lg" style={{backgroundColor: 'var(--hover)'}}></div>
       );
     }
     
@@ -134,19 +134,33 @@ const Calendar = () => {
         <div
           key={day}
           onClick={() => setSelectedDate(selectedDate === dateKey ? null : dateKey)}
-          className={`h-32 p-2 rounded-lg border cursor-pointer transition-all duration-200 ${
-            isSelected
-              ? 'border-neutral-900 bg-neutral-100'
+          className="h-32 p-2 rounded-lg border cursor-pointer transition-all duration-200"
+          style={{
+            backgroundColor: isSelected
+              ? 'var(--primary-light)'
               : isToday
-              ? 'border-neutral-400 bg-neutral-50'
-              : hasItems
-              ? 'border-neutral-300 bg-white hover:border-neutral-400'
-              : 'border-neutral-200 bg-white hover:border-neutral-300'
-          }`}
+              ? 'var(--hover)'
+              : 'var(--bg-secondary)',
+            borderColor: isSelected
+              ? 'var(--primary)'
+              : isToday
+              ? 'var(--border)'
+              : 'var(--border)'
+          }}
+          onMouseEnter={(e) => {
+            if (!isSelected) {
+              e.target.style.borderColor = 'var(--text-gray)';
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (!isSelected) {
+              e.target.style.borderColor = 'var(--border)';
+            }
+          }}
         >
-          <div className={`text-sm font-semibold mb-1 ${
-            isToday ? 'text-neutral-900' : 'text-neutral-900'
-          }`}>
+          <div className="text-sm font-semibold mb-1" style={{
+            color: isToday ? 'var(--primary)' : 'var(--text)'
+          }}>
             {day}
           </div>
           
@@ -154,13 +168,20 @@ const Calendar = () => {
             {tasks.slice(0, 2).map((task, index) => (
               <div
                 key={`task-${task.id}`}
-                className={`text-xs px-2 py-1 rounded truncate ${
-                  task.completed
-                    ? 'bg-neutral-200 text-neutral-700 line-through'
+                className="text-xs px-2 py-1 rounded truncate"
+                style={{
+                  backgroundColor: task.completed 
+                    ? '#4a5568' 
                     : task.due_date && new Date(task.due_date) < new Date()
-                    ? 'bg-neutral-200 text-neutral-800'
-                    : 'bg-neutral-100 text-neutral-700'
-                }`}
+                    ? '#e53e3e'
+                    : '#3182ce',
+                  color: task.completed 
+                    ? '#a0aec0' 
+                    : task.due_date && new Date(task.due_date) < new Date()
+                    ? '#ffffff'
+                    : '#ffffff',
+                  textDecoration: task.completed ? 'line-through' : 'none'
+                }}
                 title={task.name}
               >
                 {task.name}
@@ -170,7 +191,8 @@ const Calendar = () => {
             {notes.slice(0, 2).map((note, index) => (
               <div
                 key={`note-${note.id}`}
-                className="text-xs px-2 py-1 bg-neutral-100 text-neutral-600 rounded truncate"
+                className="text-xs px-2 py-1 rounded truncate"
+                style={{backgroundColor: '#60a5fa', color: '#ffffff'}}
                 title={note.name}
               >
                 {note.name}
@@ -178,7 +200,7 @@ const Calendar = () => {
             ))}
             
             {(tasks.length + notes.length) > 2 && (
-              <div className="text-xs text-neutral-500 px-2">
+              <div className="text-xs px-2" style={{color: 'var(--text-gray)'}}>
                 +{(tasks.length + notes.length) - 2} more
               </div>
             )}
@@ -197,8 +219,8 @@ const Calendar = () => {
     const date = new Date(selectedDate);
     
     return (
-      <div className="mt-8 bg-white rounded-lg border border-neutral-200 p-6">
-        <h3 className="text-2xl font-bold text-neutral-900 mb-4">
+      <div className="mt-8 card p-6">
+        <h3 className="text-2xl font-bold mb-4" style={{color: 'var(--text)'}}>
           {date.toLocaleDateString('en-US', { 
             weekday: 'long', 
             year: 'numeric', 
@@ -210,7 +232,7 @@ const Calendar = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
           <div>
-            <h4 className="text-lg font-semibold text-neutral-800 mb-3">
+            <h4 className="text-lg font-semibold mb-3" style={{color: 'var(--text)'}}>
               Tasks ({tasks.length})
             </h4>
             
@@ -219,25 +241,22 @@ const Calendar = () => {
                 {tasks.map((task) => (
                   <div
                     key={task.id}
-                    className={`p-3 rounded-lg border ${
-                      task.completed
-                        ? 'bg-neutral-100 border-neutral-200'
-                        : task.due_date && new Date(task.due_date) < new Date()
-                        ? 'bg-neutral-100 border-neutral-300'
-                        : 'bg-neutral-50 border-neutral-200'
-                    }`}
+                    className="p-3 rounded-lg border"
+                    style={{
+                      backgroundColor: 'var(--bg-secondary)',
+                      borderColor: 'var(--border)'
+                    }}
                   >
-                    <div className={`font-medium ${
-                      task.completed ? 'line-through text-neutral-600' : 'text-neutral-900'
-                    }`}>
+                    <div className={`font-medium ${task.completed ? 'line-through' : ''}`}
+                      style={{color: task.completed ? 'var(--text-gray)' : 'var(--text)'}}>
                       {task.name}
                     </div>
                     {task.description && (
-                      <div className="text-sm text-neutral-600 mt-1">
+                      <div className="text-sm mt-1" style={{color: 'var(--text-light)'}}>
                         {task.description}
                       </div>
                     )}
-                    <div className="flex items-center justify-between mt-2 text-xs text-neutral-500">
+                    <div className="flex items-center justify-between mt-2 text-xs" style={{color: 'var(--text-gray)'}}>
                       <span>
                         {task.completed ? 'Completed' : 'Pending'}
                       </span>
@@ -254,7 +273,7 @@ const Calendar = () => {
                 ))}
               </div>
             ) : (
-              <div className="text-neutral-500 text-center py-4">
+              <div className="text-center py-4" style={{color: 'var(--text-gray)'}}>
                 No tasks for this date
               </div>
             )}
@@ -262,7 +281,7 @@ const Calendar = () => {
           
 
           <div>
-            <h4 className="text-lg font-semibold text-neutral-800 mb-3">
+            <h4 className="text-lg font-semibold mb-3" style={{color: 'var(--text)'}}>
               Notes ({notes.length})
             </h4>
             
@@ -271,15 +290,19 @@ const Calendar = () => {
                 {notes.map((note) => (
                   <div
                     key={note.id}
-                    className="p-3 rounded-lg border bg-neutral-50 border-neutral-200"
+                    className="p-3 rounded-lg border"
+                    style={{
+                      backgroundColor: 'var(--bg-secondary)',
+                      borderColor: 'var(--border)'
+                    }}
                   >
-                    <div className="font-medium text-neutral-900">
+                    <div className="font-medium" style={{color: 'var(--text)'}}>
                       {note.name}
                     </div>
-                    <div className="text-sm text-neutral-600 mt-1 line-clamp-3">
+                    <div className="text-sm mt-1 line-clamp-3" style={{color: 'var(--text-light)'}}>
                       {note.notes}
                     </div>
-                    <div className="text-xs text-neutral-500 mt-2">
+                    <div className="text-xs mt-2" style={{color: 'var(--text-gray)'}}>
                       Created: {new Date(note.created_at).toLocaleTimeString('en-US', { 
                         hour: '2-digit', 
                         minute: '2-digit' 
@@ -289,7 +312,7 @@ const Calendar = () => {
                 ))}
               </div>
             ) : (
-              <div className="text-neutral-500 text-center py-4">
+              <div className="text-center py-4" style={{color: 'var(--text-gray)'}}>
                 No notes for this date
               </div>
             )}
@@ -303,8 +326,8 @@ const Calendar = () => {
     return (
       <div className="flex items-center justify-center py-12">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-neutral-900 mx-auto"></div>
-          <p className="mt-4 text-neutral-600">Loading calendar...</p>
+          <div className="animate-spin rounded-full h-8 w-8 mx-auto" style={{borderTop: '2px solid var(--primary)', borderRight: '2px solid transparent'}}></div>
+          <p className="mt-4 body" style={{color: 'var(--text-light)'}}>Loading calendar...</p>
         </div>
       </div>
     );
@@ -312,13 +335,12 @@ const Calendar = () => {
 
   return (
     <div className="max-w-7xl mx-auto">
-      {/* Header */}
       <div className="flex flex-col sm:flex-row items-center justify-between mb-8 gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-neutral-900 mb-2">
+          <h1 className="title text-3xl mb-2">
             Calendar
           </h1>
-          <p className="text-neutral-600">View your tasks and notes by date</p>
+          <p className="subtitle">View your tasks and notes by date</p>
         </div>
         
         <div className="flex items-center space-x-4">
@@ -327,8 +349,8 @@ const Calendar = () => {
               onClick={() => setShowTasksOnly(!showTasksOnly)}
               className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                 showTasksOnly
-                  ? 'bg-neutral-900 text-white'
-                  : 'bg-neutral-100 text-neutral-700 hover:bg-neutral-200'
+                  ? 'btn-primary'
+                  : 'btn'
               }`}
             >
               Tasks Only
@@ -337,15 +359,15 @@ const Calendar = () => {
               onClick={() => setShowNotesOnly(!showNotesOnly)}
               className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                 showNotesOnly
-                  ? 'bg-neutral-900 text-white'
-                  : 'bg-neutral-100 text-neutral-700 hover:bg-neutral-200'
+                  ? 'btn-primary'
+                  : 'btn'
               }`}
             >
               Notes Only
             </button>
             <button
               onClick={navigateToToday}
-              className="bg-neutral-900 hover:bg-neutral-800 text-white px-4 py-2 rounded-lg font-medium transition-all duration-200"
+              className="btn-primary px-4 py-2"
             >
               Today
             </button>
@@ -354,24 +376,26 @@ const Calendar = () => {
       </div>
 
 
-      <div className="bg-white rounded-lg border border-neutral-200 p-6 mb-6">
+      <div className="card p-6 mb-6">
         <div className="flex items-center justify-between mb-6">
           <button
             onClick={() => navigateMonth(-1)}
-            className="p-2 hover:bg-neutral-100 rounded-lg transition-colors"
+            className="p-2 rounded-lg transition-colors hover-bg"
+            style={{color: 'var(--text-gray)'}}
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
           </button>
           
-          <h2 className="text-2xl font-bold text-neutral-900">
+          <h2 className="text-2xl font-bold" style={{color: 'var(--text)'}}>
             {months[currentDate.getMonth()]} {currentDate.getFullYear()}
           </h2>
           
           <button
             onClick={() => navigateMonth(1)}
-            className="p-2 hover:bg-neutral-100 rounded-lg transition-colors"
+            className="p-2 rounded-lg transition-colors hover-bg"
+            style={{color: 'var(--text-gray)'}}
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -382,7 +406,7 @@ const Calendar = () => {
 
         <div className="grid grid-cols-7 gap-2 mb-2">
           {weekdays.map((day) => (
-            <div key={day} className="text-center font-semibold text-neutral-700 py-2">
+            <div key={day} className="text-center font-semibold py-2" style={{color: 'var(--text-light)'}}>
               {day}
             </div>
           ))}

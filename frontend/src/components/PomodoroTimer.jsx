@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 
-const PomodoroTimer = ({ isOpen, onClose, task, onSessionComplete }) => {
+const PomodoroTimer = ({ isOpen, onClose, task, onSessionComplete, timerState, onTimerUpdate }) => {
   const [settings, setSettings] = useState({
     focusTime: 25,
     breakTime: 5,
@@ -9,7 +9,7 @@ const PomodoroTimer = ({ isOpen, onClose, task, onSessionComplete }) => {
     targetSessions: 4
   });
   
-  const [currentSession, setCurrentSession] = useState({
+  const currentSession = timerState || {
     type: 'focus',
     timeLeft: 25 * 60,
     totalTime: 25 * 60,
@@ -17,54 +17,42 @@ const PomodoroTimer = ({ isOpen, onClose, task, onSessionComplete }) => {
     completedFocusSessions: 0,
     isRunning: false,
     isPaused: false
-  });
+  };
+
+  const setCurrentSession = (newState) => {
+    if (onTimerUpdate) {
+      if (typeof newState === 'function') {
+        onTimerUpdate(newState(currentSession));
+      } else {
+        onTimerUpdate(newState);
+      }
+    }
+  };
   
   const [showSettings, setShowSettings] = useState(false);
   const [sessionHistory, setSessionHistory] = useState([]);
-  const intervalRef = useRef(null);
   const audioRef = useRef(null);
 
   useEffect(() => {
     if (isOpen) {
-      resetTimer();
+      if (!timerState || (!timerState.isRunning && timerState.timeLeft === 25 * 60)) {
+        resetTimer();
+      }
       audioRef.current = new Audio();
     }
-    
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
-    };
   }, [isOpen, settings]);
 
   useEffect(() => {
-    if (currentSession.isRunning && currentSession.timeLeft > 0) {
-      intervalRef.current = setInterval(() => {
-        setCurrentSession(prev => ({
-          ...prev,
-          timeLeft: prev.timeLeft - 1
-        }));
-      }, 1000);
-    } else {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
-      
-      if (currentSession.timeLeft === 0 && currentSession.isRunning) {
-        handleSessionComplete();
-      }
+    if (currentSession.timeLeft === 0 && currentSession.isRunning) {
+      handleSessionComplete();
     }
-
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
-    };
-  }, [currentSession.isRunning, currentSession.timeLeft]);
+  }, [currentSession.timeLeft, currentSession.isRunning]);
 
   const resetTimer = () => {
     const focusTimeInSeconds = settings.focusTime * 60;
+    setSessionHistory([]);
     setCurrentSession({
+      taskId: task?.id,
       type: 'focus',
       timeLeft: focusTimeInSeconds,
       totalTime: focusTimeInSeconds,
@@ -151,6 +139,7 @@ const PomodoroTimer = ({ isOpen, onClose, task, onSessionComplete }) => {
       }
 
       setCurrentSession({
+        taskId: task?.id || currentSession.taskId,
         type: isLongBreak ? 'longBreak' : 'break',
         timeLeft: breakTimeInSeconds,
         totalTime: breakTimeInSeconds,
@@ -180,6 +169,7 @@ const PomodoroTimer = ({ isOpen, onClose, task, onSessionComplete }) => {
 
       const focusTimeInSeconds = settings.focusTime * 60;
       setCurrentSession({
+        taskId: task?.id || currentSession.taskId,
         type: 'focus',
         timeLeft: focusTimeInSeconds,
         totalTime: focusTimeInSeconds,
@@ -245,6 +235,7 @@ const PomodoroTimer = ({ isOpen, onClose, task, onSessionComplete }) => {
       const breakTimeInSeconds = breakTime * 60;
 
       setCurrentSession({
+        taskId: task?.id || currentSession.taskId,
         type: isLongBreak ? 'longBreak' : 'break',
         timeLeft: breakTimeInSeconds,
         totalTime: breakTimeInSeconds,
@@ -256,6 +247,7 @@ const PomodoroTimer = ({ isOpen, onClose, task, onSessionComplete }) => {
     } else {
       const focusTimeInSeconds = settings.focusTime * 60;
       setCurrentSession({
+        taskId: task?.id || currentSession.taskId,
         type: 'focus',
         timeLeft: focusTimeInSeconds,
         totalTime: focusTimeInSeconds,
@@ -286,33 +278,33 @@ const PomodoroTimer = ({ isOpen, onClose, task, onSessionComplete }) => {
         return {
           title: 'Focus Time',
           icon: '🎯',
-          color: 'from-green-600 to-emerald-600',
-          bgColor: 'bg-green-50',
-          textColor: 'text-green-800'
+          color: 'from-blue-600 to-indigo-600',
+          bgColor: 'bg-blue-50',
+          textColor: 'text-blue-800'
         };
       case 'break':
         return {
           title: 'Short Break',
           icon: '☕',
-          color: 'from-green-500 to-green-600',
-          bgColor: 'bg-green-50',
-          textColor: 'text-green-800'
+          color: 'from-blue-500 to-blue-600',
+          bgColor: 'bg-blue-50',
+          textColor: 'text-blue-800'
         };
       case 'longBreak':
         return {
           title: 'Long Break',
           icon: '🌊',
-          color: 'from-green-500 to-emerald-500',
-          bgColor: 'bg-green-50',
-          textColor: 'text-green-800'
+          color: 'from-blue-500 to-indigo-500',
+          bgColor: 'bg-blue-50',
+          textColor: 'text-blue-800'
         };
       default:
         return {
           title: 'Focus Time',
           icon: '🎯',
-          color: 'from-green-600 to-emerald-600',
-          bgColor: 'bg-green-50',
-          textColor: 'text-green-800'
+          color: 'from-blue-600 to-indigo-600',
+          bgColor: 'bg-blue-50',
+          textColor: 'text-blue-800'
         };
     }
   };
@@ -330,7 +322,7 @@ const PomodoroTimer = ({ isOpen, onClose, task, onSessionComplete }) => {
       />
       
       <div className="flex min-h-full items-center justify-center p-4">
-        <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-hidden">
+        <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
           <div className={`bg-gradient-to-r ${sessionInfo.color} px-6 py-4`}>
             <div className="flex items-center justify-between">
               <h2 className="text-2xl font-bold text-white flex items-center space-x-2">
@@ -455,7 +447,7 @@ const PomodoroTimer = ({ isOpen, onClose, task, onSessionComplete }) => {
               {currentSession.type === 'focus' && (
                 <button
                   onClick={skipToBreak}
-                  className="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center space-x-2"
+                  className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center space-x-2"
                 >
                   <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M4.555 5.168A1 1 0 003 6v8a1 1 0 001.555.832L10 11.202V14a1 1 0 001.555.832l6-4a1 1 0 000-1.664l-6-4A1 1 0 0010 6v2.798l-5.445-3.63z" clipRule="evenodd" />
@@ -467,7 +459,7 @@ const PomodoroTimer = ({ isOpen, onClose, task, onSessionComplete }) => {
               {(currentSession.type === 'break' || currentSession.type === 'longBreak') && (
                 <button
                   onClick={skipToFocus}
-                  className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center space-x-2"
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center space-x-2"
                 >
                   <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M15.445 14.832A1 1 0 0017 14V6a1 1 0 00-1.555-.832L10 8.798V6a1 1 0 00-1.555-.832l-6 4a1 1 0 000 1.664l6 4A1 1 0 0010 14v-2.798l5.445 3.63z" clipRule="evenodd" />
@@ -488,15 +480,15 @@ const PomodoroTimer = ({ isOpen, onClose, task, onSessionComplete }) => {
             </div>
 
             {task && currentSession.completedFocusSessions >= settings.targetSessions && (
-              <div className="mt-4 p-4 bg-green-50 rounded-xl border border-green-200">
+              <div className="mt-4 p-4 bg-blue-50 rounded-xl border border-blue-200">
                 <div className="text-center">
-                  <div className="text-green-800 font-semibold mb-2">🎉 Target Sessions Completed!</div>
-                  <div className="text-green-600 text-sm mb-3">
+                  <div className="text-blue-800 font-semibold mb-2">🎉 Target Sessions Completed!</div>
+                  <div className="text-blue-600 text-sm mb-3">
                     You've completed {currentSession.completedFocusSessions} focus sessions. Ready to mark the task as done?
                   </div>
                   <button
                     onClick={markTaskComplete}
-                    className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-semibold transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center space-x-2 mx-auto"
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-semibold transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center space-x-2 mx-auto"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
@@ -522,7 +514,7 @@ const PomodoroTimer = ({ isOpen, onClose, task, onSessionComplete }) => {
                       max="60"
                       value={settings.focusTime}
                       onChange={(e) => setSettings(prev => ({ ...prev, focusTime: parseInt(e.target.value) || 25 }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                   </div>
                   
@@ -536,7 +528,7 @@ const PomodoroTimer = ({ isOpen, onClose, task, onSessionComplete }) => {
                       max="30"
                       value={settings.breakTime}
                       onChange={(e) => setSettings(prev => ({ ...prev, breakTime: parseInt(e.target.value) || 5 }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                   </div>
                   
@@ -550,7 +542,7 @@ const PomodoroTimer = ({ isOpen, onClose, task, onSessionComplete }) => {
                       max="60"
                       value={settings.longBreakTime}
                       onChange={(e) => setSettings(prev => ({ ...prev, longBreakTime: parseInt(e.target.value) || 15 }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                   </div>
                   
@@ -564,7 +556,7 @@ const PomodoroTimer = ({ isOpen, onClose, task, onSessionComplete }) => {
                       max="8"
                       value={settings.sessionsUntilLongBreak}
                       onChange={(e) => setSettings(prev => ({ ...prev, sessionsUntilLongBreak: parseInt(e.target.value) || 4 }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                   </div>
                   
@@ -578,7 +570,7 @@ const PomodoroTimer = ({ isOpen, onClose, task, onSessionComplete }) => {
                       max="20"
                       value={settings.targetSessions}
                       onChange={(e) => setSettings(prev => ({ ...prev, targetSessions: parseInt(e.target.value) || 4 }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                     <p className="text-xs text-gray-500 mt-1">
                       Number of focus sessions needed before you can mark the task as complete
@@ -608,7 +600,7 @@ const PomodoroTimer = ({ isOpen, onClose, task, onSessionComplete }) => {
                         <span className="text-sm">{session.type === 'focus' ? '🎯' : session.type === 'break' ? '☕' : '🌊'}</span>
                         <span className="text-sm font-medium">{session.taskName}</span>
                         {session.skipped && (
-                          <span className="text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded-full">
+                          <span className="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">
                             Skipped
                           </span>
                         )}

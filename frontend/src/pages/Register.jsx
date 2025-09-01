@@ -23,13 +23,15 @@ const Register = () => {
       <div className="w-full max-w-md space-y-6">
         <AuthForm type="register" onSubmit={handleRegister} />
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-            {typeof error === 'object' ? JSON.stringify(error) : error}
+          <div className="card px-4 py-3" style={{backgroundColor: '#2d1b1b', borderColor: '#5c2626'}}>
+            <p className="body" style={{color: '#fca5a5'}}>
+              {typeof error === 'object' ? JSON.stringify(error) : error}
+            </p>
           </div>
         )}
-        <p className="text-center text-gray-600">
+        <p className="text-center body">
           Already have an account?{' '}
-          <Link to="/login" className="text-blue-600 hover:text-blue-700 font-medium">
+          <Link to="/login" className="font-medium" style={{color: 'var(--primary)'}}>
             Login here
           </Link>
         </p>

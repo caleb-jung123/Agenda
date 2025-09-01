@@ -58,7 +58,6 @@ const TaskModal = ({ isOpen, onClose, onSave, task, mode = 'create' }) => {
         ...formData,
         due_date: formData.due_date || null
       };
-      console.log('Submitting task data:', submitData);
       await onSave(submitData);
       onClose();
     } catch (error) {
@@ -83,76 +82,77 @@ const TaskModal = ({ isOpen, onClose, onSave, task, mode = 'create' }) => {
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
       <div 
-        className="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity"
+        className="fixed inset-0 transition-opacity"
+        style={{backgroundColor: 'rgba(0, 0, 0, 0.5)'}}
         onClick={onClose}
       />
       
       <div className="flex min-h-full items-center justify-center p-4">
-        <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden">
-          <div className="bg-gradient-to-r from-green-600 to-emerald-600 px-6 py-4">
+        <div className="relative rounded-lg w-full max-w-2xl max-h-[90vh] overflow-hidden" style={{backgroundColor: 'var(--bg-secondary)', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)'}}>
+          <div className="px-6 py-4" style={{borderBottom: '1px solid var(--border)'}}>
             <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-bold text-white flex items-center space-x-2">
-                <span>📋</span>
-                <span>{mode === 'edit' ? 'Edit Task' : 'Create New Task'}</span>
+              <h2 className="text-xl font-semibold" style={{color: 'var(--text)'}}>
+                {mode === 'edit' ? 'Edit task' : 'New task'}
               </h2>
               <button
                 onClick={onClose}
-                className="text-white/80 hover:text-white transition-colors p-2 hover:bg-white/10 rounded-lg"
+                className="p-2 rounded-md transition-colors hover-bg"
+                style={{color: 'var(--text-gray)'}}
               >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
             </div>
           </div>
 
-          <form onSubmit={handleSubmit} className="p-6 space-y-6 overflow-y-auto max-h-[calc(90vh-80px)]">
+          <form onSubmit={handleSubmit} className="p-6 space-y-5 overflow-y-auto max-h-[calc(90vh-80px)]">
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Task Name *
+              <label className="body font-medium mb-2 block" style={{color: 'var(--text)'}}>
+                Task name
               </label>
               <input
                 type="text"
                 value={formData.name}
                 onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 text-lg"
+                className="input text-base"
                 placeholder="Enter task name..."
                 required
               />
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Description (Optional)
+              <label className="body font-medium mb-2 block" style={{color: 'var(--text)'}}>
+                Description
               </label>
               <textarea
                 value={formData.description}
                 onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
                 rows={4}
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 resize-none"
-                placeholder="Add task description..."
+                className="input resize-none"
+                placeholder="Add a description..."
               />
-              <div className="mt-2 text-sm text-gray-500">
+              <div className="mt-1 caption">
                 {formData.description.length} characters
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Due Date (Optional)
+              <label className="body font-medium mb-2 block" style={{color: 'var(--text)'}}>
+                Due date
               </label>
               <input
                 type="datetime-local"
                 value={formData.due_date}
                 onChange={(e) => setFormData(prev => ({ ...prev, due_date: e.target.value }))}
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
+                className="input"
               />
             </div>
 
             {availableTags.length > 0 && (
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-3">
-                  Tags (Optional)
+                <label className="body font-medium mb-3 block" style={{color: 'var(--text)'}}>
+                  Tags
                 </label>
                 <div className="flex flex-wrap gap-2">
                   {availableTags.map(tag => (
@@ -160,11 +160,16 @@ const TaskModal = ({ isOpen, onClose, onSave, task, mode = 'create' }) => {
                       key={tag.id}
                       type="button"
                       onClick={() => handleTagToggle(tag.id)}
-                      className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all duration-200 ${
+                      className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
                         formData.tag_ids.includes(tag.id)
-                          ? 'bg-green-600 text-white shadow-md'
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                          ? 'text-white'
+                          : ''
                       }`}
+                      style={{
+                        backgroundColor: formData.tag_ids.includes(tag.id) ? 'var(--primary)' : 'var(--bg-secondary)',
+                        color: formData.tag_ids.includes(tag.id) ? 'white' : 'var(--text)',
+                        border: formData.tag_ids.includes(tag.id) ? '1px solid var(--primary)' : '1px solid var(--border)'
+                      }}
                     >
                       {tag.name}
                     </button>
@@ -173,11 +178,11 @@ const TaskModal = ({ isOpen, onClose, onSave, task, mode = 'create' }) => {
               </div>
             )}
 
-            <div className="flex items-center justify-end space-x-3 pt-4 border-t border-gray-200">
+            <div className="flex items-center justify-end space-x-3 pt-4" style={{borderTop: '1px solid var(--border)'}}>
               <button
                 type="button"
                 onClick={onClose}
-                className="px-6 py-3 text-gray-700 hover:text-gray-900 font-medium transition-colors"
+                className="btn px-4 py-2"
                 disabled={isLoading}
               >
                 Cancel
@@ -185,19 +190,16 @@ const TaskModal = ({ isOpen, onClose, onSave, task, mode = 'create' }) => {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white px-8 py-3 rounded-xl font-semibold transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center space-x-2"
+                className="btn-primary px-4 py-2 flex items-center space-x-2"
               >
                 {isLoading ? (
                   <>
-                    <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                     <span>Saving...</span>
                   </>
                 ) : (
                   <>
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                    <span>{mode === 'edit' ? 'Update Task' : 'Create Task'}</span>
+                    <span>{mode === 'edit' ? 'Update' : 'Create'}</span>
                   </>
                 )}
               </button>

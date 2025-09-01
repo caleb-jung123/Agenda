@@ -23,13 +23,13 @@ const Login = () => {
       <div className="w-full max-w-md space-y-6">
         <AuthForm type="login" onSubmit={handleLogin} />
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-            {error}
+          <div className="card px-4 py-3" style={{backgroundColor: '#2d1b1b', borderColor: '#5c2626'}}>
+            <p className="body" style={{color: '#fca5a5'}}>{error}</p>
           </div>
         )}
-        <p className="text-center text-gray-600">
+        <p className="text-center body">
           Don't have an account?{' '}
-          <Link to="/register" className="text-blue-600 hover:text-blue-700 font-medium">
+          <Link to="/register" className="font-medium" style={{color: 'var(--primary)'}}>
             Register here
           </Link>
         </p>
