@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import TagManager from './TagManager';
 
 const TaskModal = ({ isOpen, onClose, onSave, task, mode = 'create' }) => {
   const [formData, setFormData] = useState({
@@ -9,6 +10,7 @@ const TaskModal = ({ isOpen, onClose, onSave, task, mode = 'create' }) => {
   });
   const [availableTags, setAvailableTags] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isTagManagerOpen, setIsTagManagerOpen] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -149,11 +151,20 @@ const TaskModal = ({ isOpen, onClose, onSave, task, mode = 'create' }) => {
               />
             </div>
 
-            {availableTags.length > 0 && (
-              <div>
-                <label className="body font-medium mb-3 block" style={{color: 'var(--text)'}}>
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <label className="body font-medium" style={{color: 'var(--text)'}}>
                   Tags
                 </label>
+                <button
+                  type="button"
+                  onClick={() => setIsTagManagerOpen(true)}
+                  className="text-sm text-[var(--primary)] hover:underline"
+                >
+                  Manage Tags
+                </button>
+              </div>
+              {availableTags.length > 0 ? (
                 <div className="flex flex-wrap gap-2">
                   {availableTags.map(tag => (
                     <button
@@ -175,8 +186,12 @@ const TaskModal = ({ isOpen, onClose, onSave, task, mode = 'create' }) => {
                     </button>
                   ))}
                 </div>
-              </div>
-            )}
+              ) : (
+                <div className="text-[var(--text-gray)] text-sm">
+                  No tags available. Click "Manage Tags" to create some.
+                </div>
+              )}
+            </div>
 
             <div className="flex items-center justify-end space-x-3 pt-4" style={{borderTop: '1px solid var(--border)'}}>
               <button
@@ -207,6 +222,12 @@ const TaskModal = ({ isOpen, onClose, onSave, task, mode = 'create' }) => {
           </form>
         </div>
       </div>
+      
+      <TagManager
+        isOpen={isTagManagerOpen}
+        onClose={() => setIsTagManagerOpen(false)}
+        onTagsUpdated={fetchTags}
+      />
     </div>
   );
 };
