@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react';
+import api from './api';
 
 const AuthContext = createContext();
 
@@ -16,16 +17,8 @@ export const AuthProvider = ({ children }) => {
 
   const checkAuth = async () => {
     try {
-      const response = await fetch('http://localhost:8000/api/profile/', {
-        credentials: 'include'
-      });
-      
-      if (response.ok) {
-        const userData = await response.json();
-        setUser(userData);
-      } else {
-        setUser(null);
-      }
+      const response = await api.get('/api/profile/');
+      setUser(response.data);
     } catch (error) {
       setUser(null);
     } finally {
@@ -35,57 +28,36 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (credentials) => {
     try {
-      const response = await fetch('http://localhost:8000/api/login/', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify(credentials),
+      const response = await api.post('/api/login/', {
+        username: credentials.username,
+        password: credentials.password
       });
-
-      if (response.ok) {
-        const data = await response.json();
-        setUser(data.user);
-        return { success: true };
-      } else {
-        const error = await response.json();
-        return { success: false, error: error.error };
-      }
+      setUser(response.data.user);
+      return { success: true };
     } catch (error) {
-      return { success: false, error: 'Network error' };
+      const errorMessage = error.response?.data?.error || 'Network error';
+      return { success: false, error: errorMessage };
     }
   };
 
   const register = async (userData) => {
     try {
-      const response = await fetch('http://localhost:8000/api/register/', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify(userData),
+      const response = await api.post('/api/register/', {
+        username: userData.username,
+        password: userData.password,
+        first_name: userData.first_name,
+        last_name: userData.last_name
       });
-
-      if (response.ok) {
-        const data = await response.json();
-        return { success: true, user: data.user };
-      } else {
-        const error = await response.json();
-        return { success: false, error };
-      }
+      return { success: true, user: response.data.user };
     } catch (error) {
-      return { success: false, error: 'Network error' };
+      const errorMessage = error.response?.data || 'Network error';
+      return { success: false, error: errorMessage };
     }
   };
 
   const logout = async () => {
     try {
-      await fetch('http://localhost:8000/api/logout/', {
-        method: 'POST',
-        credentials: 'include',
-      });
+      await api.post('/api/logout/');
     } catch (error) {
       console.error('Logout error:', error);
     } finally {

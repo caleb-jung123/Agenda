@@ -8,3 +8,4 @@ sqlparse
 python-dotenv
 psycopg2-binary
 pytz
+whitenoise

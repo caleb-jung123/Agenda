@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import api from '../utils/api';
 
 const Calendar = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -25,13 +26,8 @@ const Calendar = () => {
       const month = currentDate.getMonth() + 1;
       const year = currentDate.getFullYear();
       
-      const response = await fetch(
-        `http://localhost:8000/api/calendar/?month=${month}&year=${year}`,
-        { credentials: 'include' }
-      );
-      
-      if (response.ok) {
-        const data = await response.json();
+      const response = await api.get(`/api/calendar/?month=${month}&year=${year}`);
+      const data = response.data;
         
         const regroupedData = { tasks: {}, notes: {} };
         
@@ -56,7 +52,6 @@ const Calendar = () => {
         });
         
         setCalendarData(regroupedData);
-      }
     } catch (error) {
       console.error('Error fetching calendar data:', error);
     } finally {

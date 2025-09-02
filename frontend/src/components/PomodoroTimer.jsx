@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import api from '../utils/api';
 
 const PomodoroTimer = ({ isOpen, onClose, task, onSessionComplete, timerState, onTimerUpdate }) => {
   const [settings, setSettings] = useState({
@@ -66,10 +67,7 @@ const PomodoroTimer = ({ isOpen, onClose, task, onSessionComplete, timerState, o
   const startTimer = async () => {
     if (currentSession.type === 'focus' && task && !currentSession.isPaused) {
       try {
-        await fetch(`http://localhost:8000/api/tasks/${task.id}/start_pomodoro/`, {
-          method: 'POST',
-          credentials: 'include'
-        });
+        await api.post(`/api/tasks/${task.id}/start_pomodoro/`);
       } catch (error) {
         console.error('Error starting pomodoro session:', error);
       }
@@ -93,10 +91,7 @@ const PomodoroTimer = ({ isOpen, onClose, task, onSessionComplete, timerState, o
   const stopTimer = async () => {
     if (currentSession.type === 'focus' && task && currentSession.isRunning) {
       try {
-        await fetch(`http://localhost:8000/api/tasks/${task.id}/end_pomodoro/`, {
-          method: 'POST',
-          credentials: 'include'
-        });
+        await api.post(`/api/tasks/${task.id}/end_pomodoro/`);
       } catch (error) {
         console.error('Error ending pomodoro session:', error);
       }
@@ -109,10 +104,7 @@ const PomodoroTimer = ({ isOpen, onClose, task, onSessionComplete, timerState, o
     if (currentSession.type === 'focus') {
       if (task && currentSession.isRunning) {
         try {
-          await fetch(`http://localhost:8000/api/tasks/${task.id}/end_pomodoro/`, {
-            method: 'POST',
-            credentials: 'include'
-          });
+          await api.post(`/api/tasks/${task.id}/end_pomodoro/`);
         } catch (error) {
           console.error('Error ending pomodoro session:', error);
         }
@@ -184,10 +176,7 @@ const PomodoroTimer = ({ isOpen, onClose, task, onSessionComplete, timerState, o
   const markTaskComplete = async () => {
     if (task) {
       try {
-        await fetch(`http://localhost:8000/api/tasks/${task.id}/complete/`, {
-          method: 'POST',
-          credentials: 'include'
-        });
+        await api.post(`/api/tasks/${task.id}/complete/`);
         
         if (onSessionComplete) {
           onSessionComplete({ taskCompleted: true });
@@ -215,10 +204,7 @@ const PomodoroTimer = ({ isOpen, onClose, task, onSessionComplete, timerState, o
     if (currentSession.type === 'focus') {
       if (task) {
         try {
-          await fetch(`http://localhost:8000/api/tasks/${task.id}/end_pomodoro/`, {
-            method: 'POST',
-            credentials: 'include'
-          });
+          await api.post(`/api/tasks/${task.id}/end_pomodoro/`);
           
           if (onSessionComplete) {
             onSessionComplete(completedSession);

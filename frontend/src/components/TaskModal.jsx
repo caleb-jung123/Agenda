@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import TagManager from './TagManager';
+import api from '../utils/api';
 
 const TaskModal = ({ isOpen, onClose, onSave, task, mode = 'create' }) => {
   const [formData, setFormData] = useState({
@@ -35,13 +36,8 @@ const TaskModal = ({ isOpen, onClose, onSave, task, mode = 'create' }) => {
 
   const fetchTags = async () => {
     try {
-      const response = await fetch('http://localhost:8000/api/tags/', {
-        credentials: 'include'
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setAvailableTags(data);
-      }
+      const response = await api.get('/api/tags/');
+      setAvailableTags(response.data);
     } catch (error) {
       console.error('Error fetching tags:', error);
     }

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import api from '../utils/api';
 
 const TagManager = ({ isOpen, onClose, onTagsUpdated }) => {
   const [tags, setTags] = useState([]);
@@ -14,16 +15,8 @@ const TagManager = ({ isOpen, onClose, onTagsUpdated }) => {
 
   const fetchTags = async () => {
     try {
-      const response = await fetch('http://localhost:8000/api/tags/', {
-        credentials: 'include'
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        setTags(data);
-      } else {
-        setError('Failed to fetch tags');
-      }
+      const response = await api.get('/api/tags/');
+      setTags(response.data);
     } catch (error) {
       console.error('Error fetching tags:', error);
       setError('Error fetching tags');
@@ -40,27 +33,10 @@ const TagManager = ({ isOpen, onClose, onTagsUpdated }) => {
     setError('');
 
     try {
-      const response = await fetch('http://localhost:8000/api/tags/', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify({
-          name: newTagName.trim(),
-          is_builtin: false
-        })
-      });
-
-      if (response.ok) {
-        const newTag = await response.json();
-        setTags([...tags, newTag]);
-        setNewTagName('');
-        if (onTagsUpdated) onTagsUpdated();
-      } else {
-        const errorData = await response.json();
-        setError(errorData.detail || 'Failed to create tag');
-      }
+      const response = await api.post('/api/tags/', { name: newTagName.trim(), is_builtin: false });
+      setTags([...tags, response.data]);
+      setNewTagName('');
+      if (onTagsUpdated) onTagsUpdated();
     } catch (error) {
       console.error('Error creating tag:', error);
       setError('Error creating tag');
@@ -74,18 +50,9 @@ const TagManager = ({ isOpen, onClose, onTagsUpdated }) => {
     setError('');
 
     try {
-      const response = await fetch(`http://localhost:8000/api/tags/${tagId}/`, {
-        method: 'DELETE',
-        credentials: 'include'
-      });
-
-      if (response.ok) {
-        setTags(tags.filter(tag => tag.id !== tagId));
-        if (onTagsUpdated) onTagsUpdated();
-      } else {
-        const errorData = await response.json();
-        setError(errorData.detail || 'Failed to delete tag');
-      }
+      await api.delete(`/api/tags/${tagId}/`);
+      setTags(tags.filter(tag => tag.id !== tagId));
+      if (onTagsUpdated) onTagsUpdated();
     } catch (error) {
       console.error('Error deleting tag:', error);
       setError('Error deleting tag');

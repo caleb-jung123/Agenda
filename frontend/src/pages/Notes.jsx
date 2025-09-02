@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import NoteModal from '../components/NoteModal';
 import ConfirmationModal from '../components/ConfirmationModal';
 import TagManager from '../components/TagManager';
+import api from '../utils/api';
 
 const Notes = () => {
   const [notes, setNotes] = useState([]);
@@ -18,14 +19,8 @@ const Notes = () => {
 
   const fetchNotes = async () => {
     try {
-      const response = await fetch('http://localhost:8000/api/notes/', {
-        credentials: 'include'
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        setNotes(data);
-      }
+      const response = await api.get('/api/notes/');
+      setNotes(response.data);
     } catch (error) {
       console.error('Error fetching notes:', error);
     } finally {
@@ -51,39 +46,27 @@ const Notes = () => {
   };
 
   const saveNote = async (formData) => {
-    const url = modalMode === 'edit' 
-      ? `http://localhost:8000/api/notes/${selectedNote.id}/`
-      : 'http://localhost:8000/api/notes/';
-    
-    const method = modalMode === 'edit' ? 'PUT' : 'POST';
-
-    const response = await fetch(url, {
-      method,
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      credentials: 'include',
-      body: JSON.stringify(formData)
-    });
-
-    if (!response.ok) {
+    try {
+      if (modalMode === 'edit') {
+        await api.put(`/api/notes/${selectedNote.id}/`, formData);
+      } else {
+        await api.post('/api/notes/', formData);
+      }
+      await fetchNotes();
+    } catch (error) {
+      console.error('Error saving note:', error);
       throw new Error(`Failed to ${modalMode} note`);
     }
-
-    await fetchNotes();
   };
 
   const deleteNote = async () => {
-    const response = await fetch(`http://localhost:8000/api/notes/${selectedNote.id}/`, {
-      method: 'DELETE',
-      credentials: 'include'
-    });
-
-    if (!response.ok) {
+    try {
+      await api.delete(`/api/notes/${selectedNote.id}/`);
+      await fetchNotes();
+    } catch (error) {
+      console.error('Error deleting note:', error);
       throw new Error('Failed to delete note');
     }
-
-    await fetchNotes();
   };
 
   if (loading) {

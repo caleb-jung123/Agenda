@@ -9,3 +9,6 @@ ENV/
 .env.production
 .env.staging
 .env
+
+node_modules/
+build/

@@ -3,6 +3,7 @@ import TaskModal from '../components/TaskModal';
 import ConfirmationModal from '../components/ConfirmationModal';
 import PomodoroTimer from '../components/PomodoroTimer';
 import TagManager from '../components/TagManager';
+import api from '../utils/api';
 
 const Tasks = () => {
   const [tasks, setTasks] = useState([]);
@@ -57,14 +58,8 @@ const Tasks = () => {
 
   const fetchTasks = async () => {
     try {
-      const response = await fetch('http://localhost:8000/api/tasks/', {
-        credentials: 'include'
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        setTasks(data);
-      }
+      const response = await api.get('/api/tasks/');
+      setTasks(response.data);
     } catch (error) {
       console.error('Error fetching tasks:', error);
     } finally {
@@ -150,57 +145,35 @@ const Tasks = () => {
   const toggleTaskCompletion = async (task) => {
     try {
       const endpoint = task.completed ? 'uncomplete' : 'complete';
-      const response = await fetch(`http://localhost:8000/api/tasks/${task.id}/${endpoint}/`, {
-        method: 'POST',
-        credentials: 'include'
-      });
-
-      if (response.ok) {
-        await fetchTasks();
-      }
+      await api.post(`/api/tasks/${task.id}/${endpoint}/`);
+      await fetchTasks();
     } catch (error) {
       console.error('Error toggling task completion:', error);
     }
   };
 
   const saveTask = async (formData) => {
-    const url = modalMode === 'edit' 
-      ? `http://localhost:8000/api/tasks/${selectedTask.id}/`
-      : 'http://localhost:8000/api/tasks/';
-    
-    const method = modalMode === 'edit' ? 'PUT' : 'POST';
-
-    console.log(`${method} ${url}`, formData);
-
-    const response = await fetch(url, {
-      method,
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      credentials: 'include',
-      body: JSON.stringify(formData)
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Server response:', response.status, errorText);
+    try {
+      if (modalMode === 'edit') {
+        await api.put(`/api/tasks/${selectedTask.id}/`, formData);
+      } else {
+        await api.post('/api/tasks/', formData);
+      }
+      await fetchTasks();
+    } catch (error) {
+      console.error('Error saving task:', error);
       throw new Error(`Failed to ${modalMode} task`);
     }
-
-    await fetchTasks();
   };
 
   const deleteTask = async () => {
-    const response = await fetch(`http://localhost:8000/api/tasks/${selectedTask.id}/`, {
-      method: 'DELETE',
-      credentials: 'include'
-    });
-
-    if (!response.ok) {
+    try {
+      await api.delete(`/api/tasks/${selectedTask.id}/`);
+      await fetchTasks();
+    } catch (error) {
+      console.error('Error deleting task:', error);
       throw new Error('Failed to delete task');
     }
-
-    await fetchTasks();
   };
 
   const isOverdue = (dueDate, taskCompleted) => {
