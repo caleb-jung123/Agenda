@@ -1,0 +1,11 @@
+.vscode/
+.idea/
+*.swp
+*.swo
+
+env/
+venv/
+ENV/
+.env.production
+.env.staging
+.env
