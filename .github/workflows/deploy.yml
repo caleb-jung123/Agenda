@@ -1,0 +1,99 @@
+name: Deploy Agenda to Azure VM
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: agenda-deploy
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: '{"clientId":"${{ secrets.AZURE_CLIENT_ID }}","clientSecret":"${{ secrets.AZURE_CLIENT_SECRET }}","subscriptionId":"${{ secrets.AZURE_SUBSCRIPTION_ID }}","tenantId":"${{ secrets.AZURE_TENANT_ID }}"}'
+
+      - name: Create temporary NSG rule for deployment
+        run: |
+          RUNNER_IP=$(curl -s https://api.ipify.org)
+          echo "Runner IP: $RUNNER_IP"
+          echo "RUNNER_IP=$RUNNER_IP" >> $GITHUB_ENV
+          
+          RULE_NAME="AgendaDeploy-$(date +%s)"
+          echo "RULE_NAME=$RULE_NAME" >> $GITHUB_ENV
+          
+          az network nsg rule create \
+            --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
+            --nsg-name ${{ secrets.AZURE_NSG_NAME }} \
+            --name $RULE_NAME \
+            --protocol Tcp \
+            --priority 100 \
+            --destination-port-range ${{ secrets.SSH_PORT }} \
+            --source-address-prefix $RUNNER_IP \
+            --access Allow \
+            --direction Inbound \
+            --description "Agenda deployment temporary access"
+
+      - name: Deploy to Azure VM
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          port: ${{ secrets.SSH_PORT }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            set -e
+            cd ${{ secrets.PROJECT_PATH }}
+            
+            git fetch --all
+            git reset --hard origin/main
+            
+            if [ ! -d "venv" ]; then
+                python3 -m venv venv
+            fi
+            source venv/bin/activate
+
+            pip install --upgrade pip
+            pip install -r requirements.txt
+            
+            cd backend
+            python manage.py migrate --noinput
+            python manage.py collectstatic --noinput
+            
+            cd ../frontend
+            npm ci
+            npm run build
+            
+            sudo systemctl restart agenda-backend
+            sudo systemctl reload nginx
+            
+            echo "Agenda deployment completed successfully!"
+
+      - name: Cleanup NSG rule
+        if: always()
+        run: |
+          if [ -n "$RULE_NAME" ]; then
+            az network nsg rule delete \
+              --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
+              --nsg-name ${{ secrets.AZURE_NSG_NAME }} \
+              --name $RULE_NAME || echo "Failed to remove NSG rule - check Azure portal"
+          fi
