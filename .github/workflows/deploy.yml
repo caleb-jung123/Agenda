@@ -91,7 +91,7 @@ jobs:
           chmod 400 ~/.ssh/deploy_key
           
           echo "SSH key permissions:"
-          ls -la ~/.ssh/deploy_key
+          ls -la ${{ secrets.SSH_PRIVATE_KEY }}
 
       - name: Deploy to Azure VM
         uses: appleboy/ssh-action@v1.0.3
@@ -99,7 +99,7 @@ jobs:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           port: ${{ secrets.SSH_PORT }}
-          key_path: ~/.ssh/deploy_key
+          key_path: ${{ secrets.SSH_PRIVATE_KEY }}
           timeout: 60s
           debug: true
           script: |
