@@ -52,6 +52,19 @@ jobs:
             --access Allow \
             --direction Inbound \
             --description "Agenda deployment temporary access"
+      
+      - name: Verify secrets accessibility
+        run: |
+          if [ -n "${{ secrets.SSH_HOST }}" ]; then
+            echo "SSH_HOST secret is accessible"
+          else
+            echo "SSH_HOST secret is NOT accessible"
+          fi
+          if [ -n "${{ secrets.SSH_PORT }}" ]; then
+            echo "SSH_PORT secret is accessible"
+          else
+            echo "SSH_PORT secret is NOT accessible"
+          fi
 
       - name: Deploy to Azure VM
         uses: appleboy/ssh-action@v1.0.3
