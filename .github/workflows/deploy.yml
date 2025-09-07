@@ -63,19 +63,29 @@ jobs:
 
       - name: Prepare SSH and known hosts
         run: |
-          mkdir -p ~/.ssh
-          chmod 700 ~/.ssh
+          echo "Creating SSH directory..."
+          mkdir -p ~/.ssh && echo "SSH directory created" || echo "Failed to create SSH directory"
           
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
+          echo "Setting SSH directory permissions..."
+          chmod 700 ~/.ssh && echo "SSH directory permissions set" || echo "Failed to set SSH directory permissions"
           
-          touch ~/.ssh/known_hosts
-          chmod 644 ~/.ssh/known_hosts
+          echo "Creating private key..."
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa && echo "Private key created" || echo "Failed to create private key"
           
-          ssh-keyscan -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
+          echo "Setting private key permissions..."
+          chmod 600 ~/.ssh/id_rsa && echo "Private key permissions set" || echo "Failed to set private key permissions"
+          
+          echo "Creating known_hosts..."
+          touch ~/.ssh/known_hosts && echo "known_hosts created" || echo "Failed to create known_hosts"
+          
+          echo "Setting known_hosts permissions..."
+          chmod 644 ~/.ssh/known_hosts && echo "known_hosts permissions set" || echo "Failed to set known_hosts permissions"
+          
+          echo "Scanning host keys..."
+          ssh-keyscan -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts && echo "Host keys scanned" || echo "Failed to scan host keys"
           
           echo "SSH setup complete:"
-          ls -la ~/.ssh/
+          ls -la ~/.ssh/ || echo "Failed to list SSH directory"
 
       - name: Deploy to Azure VM
         uses: appleboy/ssh-action@v1.0.3
