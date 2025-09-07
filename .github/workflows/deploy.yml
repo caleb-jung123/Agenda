@@ -53,6 +53,13 @@ jobs:
             --direction Inbound \
             --description "Agenda deployment temporary access"
 
+      - name: Test connectivity before deployment
+        run: |
+          echo "Testing connectivity to ${{ secrets.SSH_HOST }}:${{ secrets.SSH_PORT }}"
+          timeout 10 nc -z ${{ secrets.SSH_HOST }} ${{ secrets.SSH_PORT }} && echo "Port is open"  echo "Port is closed/filtered"
+
+          timeout 5 telnet ${{ secrets.SSH_HOST }} ${{ secrets.SSH_PORT }}  echo "Telnet test failed"
+
       - name: Deploy to Azure VM
         uses: appleboy/ssh-action@v1.0.3
         with:
