@@ -82,6 +82,17 @@ jobs:
             fi
           fi
 
+      - name: Prepare SSH key
+        run: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
+          chmod 400 ~/.ssh/deploy_key
+          
+          echo "SSH key permissions:"
+          ls -la ~/.ssh/deploy_key
+
       - name: Deploy to Azure VM
         uses: appleboy/ssh-action@v1.0.3
         with:
