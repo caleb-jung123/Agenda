@@ -46,7 +46,7 @@ jobs:
             --nsg-name ${{ secrets.AZURE_NSG_NAME }} \
             --name $RULE_NAME \
             --protocol Tcp \
-            --priority 100 \
+            --priority 200 \
             --destination-port-range ${{ secrets.SSH_PORT }} \
             --source-address-prefix $RUNNER_IP \
             --access Allow \
