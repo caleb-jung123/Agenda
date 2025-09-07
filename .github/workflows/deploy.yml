@@ -2,11 +2,11 @@ name: Deploy Agenda to Azure VM
 
 on:
   push:
-    branches: [main]
+    branches: [master]
   workflow_dispatch:
 
 concurrency:
-  group: agenda-deploy
+  group: deploy
   cancel-in-progress: true
 
 jobs:
