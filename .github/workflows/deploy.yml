@@ -32,15 +32,12 @@ jobs:
         with:
           creds: '{"clientId":"${{ secrets.AZURE_CLIENT_ID }}","clientSecret":"${{ secrets.AZURE_CLIENT_SECRET }}","subscriptionId":"${{ secrets.AZURE_SUBSCRIPTION_ID }}","tenantId":"${{ secrets.AZURE_TENANT_ID }}"}'
 
-      - name: Create temporary NSG rule for deployment
+      - name: Allow runner IP in NSG (temporary)
         run: |
           RUNNER_IP=$(curl -s https://api.ipify.org)
           echo "Runner IP: $RUNNER_IP"
-          echo "RUNNER_IP=$RUNNER_IP" >> $GITHUB_ENV
-          
-          RULE_NAME="AgendaDeploy-$(date +%s)"
+          RULE_NAME="Deploy-$(date +%s)"
           echo "RULE_NAME=$RULE_NAME" >> $GITHUB_ENV
-          
           az network nsg rule create \
             --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
             --nsg-name ${{ secrets.AZURE_NSG_NAME }} \
@@ -51,43 +48,10 @@ jobs:
             --source-address-prefix $RUNNER_IP \
             --access Allow \
             --direction Inbound \
-            --description "Agenda deployment temporary access"
+            --description "Temporary deployment access"
+          sleep 30
 
-      - name: Debug SSH key format
-        run: |
-          echo "Checking SSH key format..."
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" | head -1
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" | tail -1
-          echo "Key length: $(echo '${{ secrets.SSH_PRIVATE_KEY }}' | wc -c)"
-          echo "Lines in key: $(echo '${{ secrets.SSH_PRIVATE_KEY }}' | wc -l)"
-
-      - name: Prepare SSH and known hosts
-        run: |
-          echo "Creating SSH directory..."
-          mkdir -p ~/.ssh && echo "SSH directory created" || echo "Failed to create SSH directory"
-          
-          echo "Setting SSH directory permissions..."
-          chmod 700 ~/.ssh && echo "SSH directory permissions set" || echo "Failed to set SSH directory permissions"
-          
-          echo "Creating private key..."
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa && echo "Private key created" || echo "Failed to create private key"
-          
-          echo "Setting private key permissions..."
-          chmod 600 ~/.ssh/id_rsa && echo "Private key permissions set" || echo "Failed to set private key permissions"
-          
-          echo "Creating known_hosts..."
-          touch ~/.ssh/known_hosts && echo "known_hosts created" || echo "Failed to create known_hosts"
-          
-          echo "Setting known_hosts permissions..."
-          chmod 644 ~/.ssh/known_hosts && echo "known_hosts permissions set" || echo "Failed to set known_hosts permissions"
-          
-          echo "Scanning host keys..."
-          ssh-keyscan -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts 2>/dev/null && echo "Host keys scanned" || echo "Failed to scan host keys (will use StrictHostKeyChecking=no)"
-          
-          echo "SSH setup complete:"
-          ls -la ~/.ssh/ || echo "Failed to list SSH directory"
-
-      - name: Deploy to Azure VM
+      - name: Deploy on VM
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.SSH_HOST }}
@@ -98,48 +62,34 @@ jobs:
             set -e
             cd ${{ secrets.PROJECT_PATH }}
 
-            echo "Current user: $(whoami)"
-            echo "Repository ownership:"
-            ls -la .git/ | head -5
-
-            git config --global --add safe.directory ${{ secrets.PROJECT_PATH }}
-
-            echo "Fixing repository ownership..."
-            sudo chown -R $(whoami):$(whoami) .
-
-            echo "Repository ownership after fix:"
-            ls -la .git/ | head -5
-            
             git fetch --all
             git reset --hard origin/master
-            
-            if [ ! -d "venv" ]; then
-                python3 -m venv venv
-            fi
-            source venv/bin/activate
 
+            if [ ! -d "venv" ]; then
+              python3 -m venv venv
+            fi
+
+            source venv/bin/activate
             pip install --upgrade pip
             pip install -r requirements.txt
-            
+
             cd backend
             python manage.py migrate --noinput
             python manage.py collectstatic --noinput
-            
+
             cd ../frontend
             npm ci
             npm run build
-            
+
             sudo systemctl restart agenda-backend
             sudo systemctl reload nginx
-            
-            echo "Agenda deployment completed successfully!"
 
-      - name: Cleanup NSG rule
+      - name: Remove temporary NSG rule
         if: always()
         run: |
           if [ -n "$RULE_NAME" ]; then
             az network nsg rule delete \
               --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
               --nsg-name ${{ secrets.AZURE_NSG_NAME }} \
-              --name $RULE_NAME || echo "Failed to remove NSG rule - check Azure portal"
+              --name $RULE_NAME || echo "Failed to remove NSG rule"
           fi
