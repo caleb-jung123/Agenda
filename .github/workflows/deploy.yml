@@ -98,7 +98,17 @@ jobs:
             set -e
             cd ${{ secrets.PROJECT_PATH }}
 
+            echo "Current user: $(whoami)"
+            echo "Repository ownership:"
+            ls -la .git/ | head -5
+
             git config --global --add safe.directory ${{ secrets.PROJECT_PATH }}
+
+            echo "Fixing repository ownership..."
+            sudo chown -R $(whoami):$(whoami) .
+
+            echo "Repository ownership after fix:"
+            ls -la .git/ | head -5
             
             git fetch --all
             git reset --hard origin/master
