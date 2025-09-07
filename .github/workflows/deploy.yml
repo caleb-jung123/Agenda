@@ -82,7 +82,7 @@ jobs:
           chmod 644 ~/.ssh/known_hosts && echo "known_hosts permissions set" || echo "Failed to set known_hosts permissions"
           
           echo "Scanning host keys..."
-          ssh-keyscan -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts && echo "Host keys scanned" || echo "Failed to scan host keys"
+          ssh-keyscan -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts 2>/dev/null && echo "Host keys scanned" || echo "Failed to scan host keys (will use StrictHostKeyChecking=no)"
           
           echo "SSH setup complete:"
           ls -la ~/.ssh/ || echo "Failed to list SSH directory"
