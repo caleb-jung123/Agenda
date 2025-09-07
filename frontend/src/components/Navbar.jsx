@@ -28,7 +28,7 @@ const Navbar = () => {
               </svg>
             </div>
             <span className="text-lg font-medium" style={{color: 'var(--text)'}}>
-              Taskly Agenda Test
+              Taskly Agenda
             </span>
           </Link>
           
