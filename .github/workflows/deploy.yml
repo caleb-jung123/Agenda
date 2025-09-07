@@ -49,6 +49,7 @@ jobs:
             --access Allow \
             --direction Inbound \
             --description "Temporary deployment access"
+          sleep 30
 
       - name: Deploy on VM
         uses: appleboy/ssh-action@v1.0.3
